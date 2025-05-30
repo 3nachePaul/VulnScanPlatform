@@ -1,0 +1,448 @@
+﻿@page
+@{
+    ViewData["Title"] = "Platformă de Securitate Avansată";
+
+    // Debug info
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var userName = User.Identity?.Name ?? "Not found";
+    var userClaims = User.Claims.Select(c => c.Type + ": " + c.Value).ToList();
+}
+
+<!-- DEBUG: Status Autentificare (temporar) -->
+<div class="alert alert-info mb-4">
+    <h6>🔍 Debug Info (vei șterge asta după):</h6>
+    <p><strong>IsAuthenticated:</strong> @isAuthenticated</p>
+    <p><strong>UserName:</strong> @userName</p>
+    <p><strong>Claims:</strong></p>
+    <ul>
+        @foreach (var claim in userClaims)
+        {
+            <li>@claim</li>
+        }
+    </ul>
+</div>
+
+<!-- Hero Section -->
+<div class="home-hero-section">
+    <div class="row align-items-center">
+        <div class="col-lg-6">
+            <div class="home-hero-content">
+                <div class="mb-4">
+                    <span class="home-hero-badge">
+                        <i class="fas fa-shield-alt me-2"></i>Securitate de Ultimă Generație
+                    </span>
+                </div>
+                <h1 class="home-hero-title">
+                    Protejează-ți aplicațiile cu
+                    <span class="home-hero-title-gradient">
+                        VulnScan Platform
+                    </span>
+                </h1>
+                <p class="home-hero-description">
+                    Detectează și remediază vulnerabilitățile OWASP Top 10 cu tehnologie AI avansată.
+                    Securizează-ți aplicațiile web și API-urile cu scanări automate și rapoarte detaliate.
+                </p>
+
+                <div class="home-hero-buttons">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-page="/Dashboard/Index" class="btn btn-primary-modern btn-modern btn-lg">
+                            <i class="fas fa-tachometer-alt me-2"></i>Accesează Dashboard
+                        </a>
+                        <button class="btn btn-outline-modern btn-lg">
+                            <i class="fas fa-plus me-2"></i>Scanare Nouă
+                        </button>
+
+                        <!-- Status logat -->
+                        <div class="mt-3 text-center w-100">
+                            <div class="alert alert-success d-inline-flex align-items-center">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Conectat ca: @User.Identity.Name</strong>
+                                @if (User.HasClaim("Role", "Administrator"))
+                                {
+                                    <span class="badge bg-danger ms-2">Administrator</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-page="/Account/Register" class="btn btn-primary-modern btn-modern btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Începe Gratuit
+                        </a>
+                        <a asp-page="/Account/Login" class="btn btn-outline-modern btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Autentificare
+                        </a>
+                    }
+                </div>
+
+                <div class="home-hero-features">
+                    <div class="home-hero-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Scanări Nelimitate</span>
+                    </div>
+                    <div class="home-hero-feature">
+                        <i class="fas fa-shield-check"></i>
+                        <span>OWASP Compliant</span>
+                    </div>
+                    <div class="home-hero-feature">
+                        <i class="fas fa-cloud"></i>
+                        <span>Cloud Ready</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="home-hero-image">
+                <div class="home-security-mockup">
+                    <div class="card-modern p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="fw-bold mb-0">Scanare în Timp Real</h6>
+                            <span class="badge badge-modern badge-gradient-success">Live</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">SQL Injection Detection</span>
+                                <span class="small fw-bold text-success">98%</span>
+                            </div>
+                            <div class="home-mockup-progress">
+                                <div class="home-mockup-progress-bar home-progress-success home-progress-98"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">XSS Vulnerabilities</span>
+                                <span class="small fw-bold text-warning">76%</span>
+                            </div>
+                            <div class="home-mockup-progress">
+                                <div class="home-mockup-progress-bar home-progress-warning home-progress-76"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">Authentication Bypass</span>
+                                <span class="small fw-bold text-info">45%</span>
+                            </div>
+                            <div class="home-mockup-progress">
+                                <div class="home-mockup-progress-bar home-progress-info home-progress-45"></div>
+                            </div>
+                        </div>
+
+                        <div class="home-mockup-result">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <small>12 vulnerabilități detectate și clasificate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="home-statistics-section">
+    <div class="row text-center">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="home-stat-card">
+                <div class="home-stat-icon home-stat-primary">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="home-stat-number home-counter home-counter-primary counter" data-target="10000">0</h3>
+                <p class="home-stat-label">Scanări Efectuate</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="home-stat-card">
+                <div class="home-stat-icon home-stat-danger">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <h3 class="home-stat-number home-counter home-counter-danger counter" data-target="50000">0</h3>
+                <p class="home-stat-label">Vulnerabilități Detectate</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="home-stat-card">
+                <div class="home-stat-icon home-stat-success">
+                    <i class="fas fa-shield-check"></i>
+                </div>
+                <h3 class="home-stat-number home-counter home-counter-success counter" data-target="99">0</h3>
+                <p class="home-stat-label">% Acuratețe</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="home-stat-card">
+                <div class="home-stat-icon home-stat-info">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="home-stat-number home-counter home-counter-info counter" data-target="500">0</h3>
+                <p class="home-stat-label">Utilizatori Activi</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="home-features-section">
+    <div class="text-center mb-5">
+        <span class="home-features-badge">Funcționalități Avansate</span>
+        <h2 class="home-features-title">De ce să alegi VulnScan Platform?</h2>
+        <p class="home-features-description">
+            Combinăm tehnologia AI cu expertiza de securitate pentru a-ți oferi cele mai complete soluții de testare.
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="home-feature-card">
+                <div class="card-body text-center p-4">
+                    <div class="home-feature-icon home-icon-primary">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h5 class="home-feature-title">Scanare Automată AI</h5>
+                    <p class="home-feature-description">
+                        Algoritmi avansați de machine learning detectează vulnerabilități complexe și False Positive-uri cu acuratețe ridicată.
+                    </p>
+                    <ul class="home-feature-list">
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Detectare OWASP Top 10
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Analiză comportamentală
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Actualizări automate
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="home-feature-card">
+                <div class="card-body text-center p-4">
+                    <div class="home-feature-icon home-icon-success">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5 class="home-feature-title">Rapoarte Inteligente</h5>
+                    <p class="home-feature-description">
+                        Generează rapoarte detaliate cu recomandări de remediere prioritizate și trackere de progres în timp real.
+                    </p>
+                    <ul class="home-feature-list">
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Export PDF/CSV/JSON
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Dashboard interactiv
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Istoric complet
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="home-feature-card">
+                <div class="card-body text-center p-4">
+                    <div class="home-feature-icon home-icon-warning">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h5 class="home-feature-title">Securitate Enterprise</h5>
+                    <p class="home-feature-description">
+                        Controlul accesului bazat pe roluri, notificări în timp real și integrare cu sistemele existente.
+                    </p>
+                    <ul class="home-feature-list">
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Multi-tenant security
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i>
+                            API REST completă
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i>
+                            Notificări în timp real
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OWASP Top 10 Section -->
+<div class="home-owasp-section">
+    <div class="home-owasp-card">
+        <div class="home-owasp-header">
+            <h3 class="home-owasp-title">OWASP Top 10 Coverage</h3>
+            <p class="home-owasp-subtitle">Detectăm și analizăm toate vulnerabilitățile critice din standardul OWASP</p>
+        </div>
+        <div class="home-owasp-grid">
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="home-owasp-item">
+                        <div class="home-owasp-item-icon home-owasp-danger">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h6 class="home-owasp-item-title">SQL Injection</h6>
+                        <small class="home-owasp-item-description">Atacuri asupra bazelor de date</small>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="home-owasp-item">
+                        <div class="home-owasp-item-icon home-owasp-warning">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h6 class="home-owasp-item-title">XSS</h6>
+                        <small class="home-owasp-item-description">Cross-Site Scripting</small>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="home-owasp-item">
+                        <div class="home-owasp-item-icon home-owasp-info">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <h6 class="home-owasp-item-title">Auth Bypass</h6>
+                        <small class="home-owasp-item-description">Vulnerabilități de autentificare</small>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="home-owasp-item">
+                        <div class="home-owasp-item-icon home-owasp-success">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h6 class="home-owasp-item-title">Data Exposure</h6>
+                        <small class="home-owasp-item-description">Date sensibile expuse</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-owasp-footer">
+                <p class="text-muted mb-3">+ 6 alte categorii OWASP Top 10</p>
+                <button class="btn btn-outline-primary">
+                    <i class="fas fa-list me-2"></i>Vezi Lista Completă
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <div class="home-cta-section">
+        <div class="home-cta-card">
+            <div class="card-body">
+                <div class="home-cta-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h2 class="home-cta-title">Gata să începi?</h2>
+                <p class="home-cta-description">
+                    Creează-ți contul gratuit și începe să-ți securizezi aplicațiile în mai puțin de 2 minute.
+                </p>
+
+                <div class="home-cta-buttons">
+                    <a asp-page="/Account/Register" class="btn btn-primary-modern btn-modern btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Înregistrare Gratuită
+                    </a>
+                    <a asp-page="/Account/Login" class="btn btn-outline-modern btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Am deja cont
+                    </a>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="home-cta-features">
+                            <div class="home-cta-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Fără card de credit</span>
+                            </div>
+                            <div class="home-cta-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Setup în 2 minute</span>
+                            </div>
+                            <div class="home-cta-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Suport 24/7</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Counter animation
+        function animateCounters() {
+            const counters = document.querySelectorAll('.counter');
+
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                let current = 0;
+                const increment = target / 100;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = target.toLocaleString();
+                        clearInterval(timer);
+                    } else {
+                        counter.textContent = Math.floor(current).toLocaleString();
+                    }
+                }, 20);
+            });
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.classList.contains('home-statistics-section')) {
+                        animateCounters();
+                    }
+                    entry.target.classList.add('fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        // Observe sections for animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.home-statistics-section, .home-features-section, .home-owasp-section');
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // Add hover effects to OWASP items
+            const owaspItems = document.querySelectorAll('.home-owasp-item');
+            owaspItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = 'var(--shadow-light)';
+                });
+
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+        });
+    </script>
+}

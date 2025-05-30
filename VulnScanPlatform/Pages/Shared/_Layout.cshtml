@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VulnScan Platform</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/VulnScanPlatform.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light navbar-modern">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-page="/Index">
+                    <i class="fas fa-shield-halved"></i>
+                    VulnScan Platform
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Dashboard/Index" ? "active" : "")"
+                                   asp-area="" asp-page="/Dashboard/Index">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Applications") == true ? "active" : "")"
+                                   asp-area="" asp-page="/Applications/Index">
+                                    <i class="fas fa-globe me-2"></i>Aplicații
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Scans") == true ? "active" : "")"
+                                   asp-area="" asp-page="/Scans/Index">
+                                    <i class="fas fa-search me-2"></i>Scanări
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Vulnerabilities") == true ? "active" : "")"
+                                   asp-area="" asp-page="/Vulnerabilities/Index">
+                                    <i class="fas fa-bug me-2"></i>Vulnerabilități
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Reports") == true ? "active" : "")"
+                                   asp-area="" asp-page="/Reports/Index">
+                                    <i class="fas fa-file-alt me-2"></i>Rapoarte
+                                </a>
+                            </li>
+
+                            @if (User.HasClaim("Role", "Administrator"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-cog me-2"></i>Admin
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Users/Index">
+                                                <i class="fas fa-users me-2"></i>Utilizatori
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Settings">
+                                                <i class="fas fa-sliders-h me-2"></i>Setări
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Logs">
+                                                <i class="fas fa-history me-2"></i>Loguri Sistem
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")"
+                                   asp-area="" asp-page="/Index">
+                                    <i class="fas fa-home me-2"></i>Acasă
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-page="/Features">
+                                    <i class="fas fa-star me-2"></i>Funcționalități
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-page="/Pricing">
+                                    <i class="fas fa-tag me-2"></i>Prețuri
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="navbar-user-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                        <i class="fas fa-user navbar-user-icon"></i>
+                                    </div>
+                                    <span>@User.Identity.Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li class="dropdown-header">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <div class="navbar-user-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@User.FindFirst("Name")?.Value</div>
+                                                <small class="text-muted">@User.FindFirst("Role")?.Value</small>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="" asp-page="/Account/Profile">
+                                            <i class="fas fa-user-circle me-2"></i>Profilul Meu
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="" asp-page="/Account/Settings">
+                                            <i class="fas fa-cog me-2"></i>Setări Cont
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form class="d-inline" asp-area="" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fas fa-sign-out-alt me-2"></i>Deconectare
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-page="/Account/Login">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Autentificare
+                                </a>
+                            </li>
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-primary-modern btn-modern btn-sm" asp-area="" asp-page="/Account/Register">
+                                    <i class="fas fa-user-plus me-2"></i>Înregistrare
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mt-4">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer-modern">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-shield-halved footer-brand-icon me-3"></i>
+                        <h5 class="mb-0">VulnScan Platform</h5>
+                    </div>
+                    <p class="text-white-50">
+                        Platformă avansată de scanare și detectare a vulnerabilităților pentru aplicații web moderne.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-white-50"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white-50"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-white-50"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Platformă</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Funcționalități</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Prețuri</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">API</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Documentație</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Companie</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Despre Noi</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Blog</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Cariere</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Suport</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Centru Ajutor</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Status Sistem</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Securitate</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a asp-area="" asp-page="/Privacy" class="text-white-50 text-decoration-none">Confidențialitate</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Termeni</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Cookie-uri</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Licențe</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="border-white-50 my-4">
+
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="text-white-50 mb-0">
+                        &copy; 2025 VulnScan Platform. Toate drepturile rezervate.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-white-50 mb-0">
+                        Făcut cu <i class="fas fa-heart text-danger"></i> în România
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

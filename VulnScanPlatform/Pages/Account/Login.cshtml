@@ -1,0 +1,198 @@
+﻿@page
+@model VulnScanPlatform.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Autentificare";
+}
+
+<div class="login-container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card-modern">
+                <div class="login-card-header">
+                    <div class="mb-3">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3 class="mb-0">Bun venit înapoi!</h3>
+                    <p class="mb-0 opacity-90">Conectează-te la contul tău</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div asp-validation-summary="All" class="validation-summary fade-in-up"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Email" class="auth-form-label">
+                                <i class="fas fa-envelope me-2"></i>@Html.DisplayNameFor(m => m.Input.Email)
+                            </label>
+                            <input asp-for="Input.Email" class="form-control auth-form-control"
+                                   placeholder="exemplu@email.com" autocomplete="username" />
+                            <span asp-validation-for="Input.Email" class="validation-error"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Password" class="auth-form-label">
+                                <i class="fas fa-lock me-2"></i>@Html.DisplayNameFor(m => m.Input.Password)
+                            </label>
+                            <div class="position-relative">
+                                <input asp-for="Input.Password" class="form-control auth-form-control"
+                                       placeholder="Introdu parola" autocomplete="current-password" type="password" id="passwordInput" />
+                                <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y me-3 password-toggle-btn"
+                                        id="togglePassword">
+                                    <i class="fas fa-eye text-muted"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="validation-error"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input asp-for="Input.RememberMe" class="form-check-input" />
+                                <label asp-for="Input.RememberMe" class="form-check-label fw-medium">
+                                    @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-modern btn-modern w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Autentificare
+                        </button>
+
+                        <div class="text-center">
+                            <a href="#" class="text-decoration-none opacity-75">Ai uitat parola?</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center p-4">
+                    <p class="mb-3 text-muted">Nu ai cont încă?</p>
+                    <a asp-page="./Register" class="btn btn-outline-modern">
+                        <i class="fas fa-user-plus me-2"></i>Creează cont nou
+                    </a>
+                </div>
+            </div>
+
+            <!-- Demo Credentials Card -->
+            <div class="card-modern demo-credentials-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-2 me-3">
+                            <i class="fas fa-info text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Cont Administrator Demo</h6>
+                            <small class="text-muted">Pentru testare și demonstrație</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="demo-credential-item">
+                                <small>Email</small>
+                                <code>admin@vulnscan.local</code>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="demo-credential-item">
+                                <small>Parolă</small>
+                                <code>Admin123!</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-3 w-100" onclick="fillDemoCredentials()">
+                        <i class="fas fa-magic me-2"></i>Completează automat
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Preview -->
+            <div class="features-preview">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="feature-preview-item">
+                            <div class="feature-preview-icon bg-primary bg-opacity-10">
+                                <i class="fas fa-search text-primary"></i>
+                            </div>
+                            <h6>Scanare Automată</h6>
+                            <small class="text-muted">Detectează vulnerabilități OWASP Top 10</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="feature-preview-item">
+                            <div class="feature-preview-icon bg-success bg-opacity-10">
+                                <i class="fas fa-chart-line text-success"></i>
+                            </div>
+                            <h6>Rapoarte Detaliate</h6>
+                            <small class="text-muted">Analize comprehensive și recomandări</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="feature-preview-item">
+                            <div class="feature-preview-icon bg-warning bg-opacity-10">
+                                <i class="fas fa-shield-alt text-warning"></i>
+                            </div>
+                            <h6>Securitate Avansată</h6>
+                            <small class="text-muted">Protecție în timp real</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            const icon = this.querySelector('i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Fill demo credentials
+        function fillDemoCredentials() {
+            document.getElementById('Input_Email').value = 'admin@vulnscan.local';
+            document.getElementById('Input_Password').value = 'Admin123!';
+
+            // Add animation effect
+            const inputs = document.querySelectorAll('.auth-form-control');
+            inputs.forEach(input => {
+                input.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    input.style.transform = 'scale(1)';
+                }, 200);
+            });
+        }
+
+        // Enhanced form validation display
+        document.addEventListener('DOMContentLoaded', function() {
+            const validationSummary = document.querySelector('[asp-validation-summary]');
+            if (validationSummary && validationSummary.innerHTML.trim()) {
+                validationSummary.style.display = 'block';
+                validationSummary.classList.add('fade-in-up');
+            }
+
+            // Add focus effects to form controls
+            const formControls = document.querySelectorAll('.auth-form-control');
+            formControls.forEach(control => {
+                control.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+
+                control.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+}

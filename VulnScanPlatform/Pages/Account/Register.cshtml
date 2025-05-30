@@ -1,0 +1,302 @@
+﻿@page
+@model VulnScanPlatform.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Înregistrare";
+}
+
+<div class="register-container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card-modern">
+                <div class="register-card-header">
+                    <div class="mb-3">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="mb-0">Creează cont nou</h3>
+                    <p class="mb-0 opacity-90">Începe să-ți securizezi aplicațiile astăzi</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div asp-validation-summary="All" class="validation-summary fade-in-up"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.FirstName" class="auth-form-label">
+                                    <i class="fas fa-user me-2"></i>@Html.DisplayNameFor(m => m.Input.FirstName)
+                                </label>
+                                <input asp-for="Input.FirstName" class="form-control auth-form-control"
+                                       placeholder="Ioan" autocomplete="given-name" />
+                                <span asp-validation-for="Input.FirstName" class="validation-error"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.LastName" class="auth-form-label">
+                                    <i class="fas fa-user me-2"></i>@Html.DisplayNameFor(m => m.Input.LastName)
+                                </label>
+                                <input asp-for="Input.LastName" class="form-control auth-form-control"
+                                       placeholder="Popescu" autocomplete="family-name" />
+                                <span asp-validation-for="Input.LastName" class="validation-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="auth-form-label">
+                                <i class="fas fa-envelope me-2"></i>@Html.DisplayNameFor(m => m.Input.Email)
+                            </label>
+                            <input asp-for="Input.Email" class="form-control auth-form-control"
+                                   placeholder="ioan@exemplu.com" autocomplete="email" />
+                            <span asp-validation-for="Input.Email" class="validation-error"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.RequestedRole" class="auth-form-label">
+                                <i class="fas fa-id-badge me-2"></i>@Html.DisplayNameFor(m => m.Input.RequestedRole)
+                            </label>
+                            <select asp-for="Input.RequestedRole" class="form-select auth-form-control">
+                                <option value="@VulnScanPlatform.Models.UserRole.RegisteredUser">Utilizator Înregistrat</option>
+                                <option value="@VulnScanPlatform.Models.UserRole.SecurityAnalyst">Analist de Securitate</option>
+                            </select>
+                            <div class="role-selection-info">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Conturile de analist vor fi revizuite de administratori
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="auth-form-label">
+                                <i class="fas fa-lock me-2"></i>@Html.DisplayNameFor(m => m.Input.Password)
+                            </label>
+                            <div class="position-relative">
+                                <input asp-for="Input.Password" class="form-control auth-form-control"
+                                       placeholder="Introdu o parolă sigură" autocomplete="new-password" type="password" id="passwordInput" />
+                                <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y me-3 password-toggle-btn"
+                                        id="togglePassword">
+                                    <i class="fas fa-eye text-muted"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="validation-error"></span>
+                            <div class="password-strength mt-2" id="passwordStrength">
+                                <div class="progress">
+                                    <div class="progress-bar" id="strengthBar"></div>
+                                </div>
+                                <small class="text-muted" id="strengthText">Introdu o parolă pentru a vedea tăria acesteia</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.ConfirmPassword" class="auth-form-label">
+                                <i class="fas fa-lock me-2"></i>@Html.DisplayNameFor(m => m.Input.ConfirmPassword)
+                            </label>
+                            <div class="position-relative">
+                                <input asp-for="Input.ConfirmPassword" class="form-control auth-form-control"
+                                       placeholder="Confirmă parola" autocomplete="new-password" type="password" id="confirmPasswordInput" />
+                                <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y me-3 password-toggle-btn"
+                                        id="toggleConfirmPassword">
+                                    <i class="fas fa-eye text-muted"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.ConfirmPassword" class="validation-error"></span>
+                            <div class="password-match-indicator" id="passwordMatch">
+                                <small class="text-success">
+                                    <i class="fas fa-check me-1"></i>Parolele se potrivesc
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="terms-agreement">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    Sunt de acord cu
+                                    <a href="#">Termenii și Condițiile</a>
+                                    și
+                                    <a href="#">Politica de Confidențialitate</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-modern btn-modern w-100 mb-3" id="registerBtn">
+                            <i class="fas fa-user-plus me-2"></i>Creează Contul
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center p-4">
+                    <p class="mb-3 text-muted">Ai deja un cont?</p>
+                    <a asp-page="./Login" class="btn btn-outline-modern">
+                        <i class="fas fa-sign-in-alt me-2"></i>Autentifică-te
+                    </a>
+                </div>
+            </div>
+
+            <!-- Security Benefits -->
+            <div class="security-benefits">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="security-benefit-item">
+                            <div class="security-benefit-icon bg-success bg-opacity-10">
+                                <i class="fas fa-shield-check text-success"></i>
+                            </div>
+                            <h6>Securitate Maximă</h6>
+                            <small class="text-muted">Criptare end-to-end și autentificare multi-factor</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="security-benefit-item">
+                            <div class="security-benefit-icon bg-primary bg-opacity-10">
+                                <i class="fas fa-rocket text-primary"></i>
+                            </div>
+                            <h6>Start Rapid</h6>
+                            <small class="text-muted">Configurare în 2 minute, prima scanare gratuită</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="security-benefit-item">
+                            <div class="security-benefit-icon bg-info bg-opacity-10">
+                                <i class="fas fa-headset text-info"></i>
+                            </div>
+                            <h6>Suport 24/7</h6>
+                            <small class="text-muted">Echipa noastră de experți îți stă la dispoziție</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle password visibility
+            function setupPasswordToggle(inputId, toggleId) {
+                const input = document.getElementById(inputId);
+                const toggle = document.getElementById(toggleId);
+
+                toggle.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+
+            setupPasswordToggle('passwordInput', 'togglePassword');
+            setupPasswordToggle('confirmPasswordInput', 'toggleConfirmPassword');
+
+            // Password strength checker
+            const passwordInput = document.getElementById('passwordInput');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                const strength = calculatePasswordStrength(password);
+
+                strengthBar.style.width = strength.percentage + '%';
+                strengthBar.className = 'progress-bar ' + strength.colorClass;
+                strengthText.textContent = strength.text;
+            });
+
+            // Password match checker
+            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+            const passwordMatch = document.getElementById('passwordMatch');
+
+            function checkPasswordMatch() {
+                if (confirmPasswordInput.value && passwordInput.value === confirmPasswordInput.value) {
+                    passwordMatch.classList.add('show');
+                    confirmPasswordInput.classList.remove('is-invalid');
+                    confirmPasswordInput.classList.add('is-valid');
+                } else if (confirmPasswordInput.value) {
+                    passwordMatch.classList.remove('show');
+                    confirmPasswordInput.classList.remove('is-valid');
+                    confirmPasswordInput.classList.add('is-invalid');
+                } else {
+                    passwordMatch.classList.remove('show');
+                    confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+                }
+            }
+
+            confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+            passwordInput.addEventListener('input', checkPasswordMatch);
+
+            // Form validation
+            const form = document.querySelector('form');
+            const registerBtn = document.getElementById('registerBtn');
+            const agreeTerms = document.getElementById('agreeTerms');
+
+            form.addEventListener('submit', function(e) {
+                if (!agreeTerms.checked) {
+                    e.preventDefault();
+                    alert('Trebuie să fii de acord cu Termenii și Condițiile pentru a continua.');
+                    return;
+                }
+
+                registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Se creează contul...';
+                registerBtn.disabled = true;
+            });
+        });
+
+        function calculatePasswordStrength(password) {
+            let score = 0;
+            let feedback = [];
+
+            if (password.length === 0) {
+                return {
+                    percentage: 0,
+                    colorClass: 'bg-secondary',
+                    text: 'Introdu o parolă pentru a vedea tăria acesteia'
+                };
+            }
+
+            if (password.length >= 8) score += 25;
+            else feedback.push('cel puțin 8 caractere');
+
+            if (/[A-Z]/.test(password)) score += 25;
+            else feedback.push('litere mari');
+
+            if (/[a-z]/.test(password)) score += 25;
+            else feedback.push('litere mici');
+
+            if (/\d/.test(password)) score += 25;
+            else feedback.push('cifre');
+
+            if (/[^A-Za-z0-9]/.test(password)) score += 10;
+
+            let colorClass, text;
+
+            if (score < 25) {
+                colorClass = 'bg-danger';
+                text = 'Foarte slabă - Adaugă: ' + feedback.join(', ');
+            } else if (score < 50) {
+                colorClass = 'bg-warning';
+                text = 'Slabă - Adaugă: ' + feedback.join(', ');
+            } else if (score < 75) {
+                colorClass = 'bg-info';
+                text = 'Medie - Adaugă: ' + feedback.join(', ');
+            } else if (score < 100) {
+                colorClass = 'bg-success';
+                text = 'Bună';
+            } else {
+                colorClass = 'bg-success';
+                text = 'Excelentă';
+            }
+
+            return {
+                percentage: Math.min(score, 100),
+                colorClass: colorClass,
+                text: text
+            };
+        }
+    </script>
+}

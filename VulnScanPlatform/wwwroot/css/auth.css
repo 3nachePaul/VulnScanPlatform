@@ -1,0 +1,353 @@
+﻿/* Authentication Pages Styles - Login & Register */
+
+/* Password Strength Indicator */
+.password-strength {
+    transition: var(--transition);
+}
+
+    .password-strength .progress {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+
+    .password-strength .progress-bar {
+        transition: width 0.3s ease, background-color 0.3s ease;
+        border-radius: 10px;
+    }
+
+/* Password Toggle Button */
+.password-toggle-btn {
+    z-index: 10;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+    .password-toggle-btn:focus {
+        box-shadow: none !important;
+    }
+
+/* Login Page Specific */
+.login-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-card-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem;
+    border: none;
+    font-weight: 600;
+    text-align: center;
+}
+
+    .login-card-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+.demo-credentials-card {
+    margin-top: 1.5rem;
+}
+
+.demo-credential-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+    .demo-credential-item small {
+        display: block;
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .demo-credential-item code {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+.features-preview {
+    margin-top: 3rem;
+}
+
+.feature-preview-item {
+    text-align: center;
+    padding: 1rem;
+}
+
+.feature-preview-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+/* Register Page Specific */
+.register-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+}
+
+.register-card-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 2rem;
+    border: none;
+    font-weight: 600;
+    text-align: center;
+}
+
+    .register-card-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+/* Password Match Indicator */
+.password-match-indicator {
+    display: none;
+    margin-top: 0.5rem;
+}
+
+    .password-match-indicator.show {
+        display: block;
+    }
+
+    .password-match-indicator small {
+        font-size: 0.875rem;
+    }
+
+/* Role Selection Info */
+.role-selection-info {
+    background-color: rgba(13, 202, 240, 0.1);
+    border: 1px solid rgba(13, 202, 240, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+    .role-selection-info small {
+        color: #0dcaf0;
+        font-size: 0.8rem;
+    }
+
+/* Terms Agreement */
+.terms-agreement {
+    background-color: rgba(248, 249, 250, 0.8);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+    .terms-agreement .form-check-input {
+        border-radius: 6px;
+        margin-top: 0.25rem;
+    }
+
+    .terms-agreement .form-check-label {
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .terms-agreement a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .terms-agreement a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+/* Security Benefits Section */
+.security-benefits {
+    margin-top: 2rem;
+}
+
+.security-benefit-item {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.security-benefit-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.security-benefit-item h6 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.security-benefit-item small {
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+/* Form Enhancements */
+.auth-form-control {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+    .auth-form-control:focus {
+        background: rgba(255, 255, 255, 1);
+        border-color: transparent;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+    }
+
+.auth-form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+    .auth-form-label i {
+        color: #667eea;
+        width: 16px;
+        text-align: center;
+    }
+
+/* Validation Styles */
+.validation-summary {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.validation-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+.field-validation-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.input-validation-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2) !important;
+}
+
+/* Loading States */
+.auth-btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+    .auth-btn-loading .btn-text {
+        opacity: 0;
+    }
+
+    .auth-btn-loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Responsive Design for Auth Pages */
+@media (max-width: 768px) {
+    .login-container,
+    .register-container {
+        min-height: auto;
+        padding: 1rem 0;
+    }
+
+    .login-card-header,
+    .register-card-header {
+        padding: 1.5rem;
+    }
+
+        .login-card-header i,
+        .register-card-header i {
+            font-size: 2rem;
+        }
+
+    .demo-credentials-card {
+        margin-top: 1rem;
+    }
+
+    .security-benefits {
+        margin-top: 1.5rem;
+    }
+
+    .security-benefit-item {
+        margin-bottom: 1rem;
+    }
+
+    .security-benefit-icon,
+    .feature-preview-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-form-control {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .card-modern {
+        margin: 0.5rem;
+    }
+
+    .demo-credential-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-modern {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
