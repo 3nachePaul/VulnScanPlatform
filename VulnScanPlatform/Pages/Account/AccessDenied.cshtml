@@ -1,0 +1,13 @@
+﻿@page
+@model VulnScanPlatform.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Acces Interzis";
+}
+
+<header>
+    <h1 class="text-danger">@ViewData["Title"]</h1>
+    <p class="text-danger">Nu aveți permisiunea de a accesa această resursă.</p>
+    <p>
+        <a asp-page="/Index">Înapoi la pagina principală</a>
+    </p>
+</header>

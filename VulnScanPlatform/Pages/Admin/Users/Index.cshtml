@@ -1,4 +1,371 @@
 ﻿@page
 @model VulnScanPlatform.Pages.Admin.Users.IndexModel
 @{
+    ViewData["Title"] = "Gestionare Utilizatori";
+}
+
+<div class="admin-page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="admin-page-title">
+                <i class="admin-title-icon fas fa-users"></i>
+                Gestionare Utilizatori
+            </h1>
+            <p class="admin-page-subtitle">Administrează utilizatorii platformei și permisiunile acestora</p>
+        </div>
+        <a asp-page="Create" class="btn btn-primary-modern btn-modern">
+            <i class="fas fa-user-plus me-2"></i>Adaugă Utilizator
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="admin-stats-row">
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-stat-card">
+                <i class="admin-stat-icon fas fa-users"></i>
+                <h3 class="admin-stat-number">@Model.TotalUsers</h3>
+                <p class="admin-stat-label">Total Utilizatori</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-stat-card">
+                <i class="admin-stat-icon fas fa-user-check text-success"></i>
+                <h3 class="admin-stat-number">@Model.ActiveUsers</h3>
+                <p class="admin-stat-label">Utilizatori Activi</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-stat-card">
+                <i class="admin-stat-icon fas fa-user-shield text-danger"></i>
+                <h3 class="admin-stat-number">@Model.AdminCount</h3>
+                <p class="admin-stat-label">Administratori</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="admin-stat-card">
+                <i class="admin-stat-icon fas fa-user-plus text-primary"></i>
+                <h3 class="admin-stat-number">@Model.NewUsersThisMonth</h3>
+                <p class="admin-stat-label">Utilizatori Noi (Luna Aceasta)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card-modern admin-search-card">
+    <div class="card-body p-4">
+        <form method="get">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group admin-search-input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control admin-search-input"
+                               asp-for="SearchTerm" placeholder="Caută după nume sau email..." />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select admin-filter-select" asp-for="RoleFilter">
+                        <option value="">Toate Rolurile</option>
+                        <option value="Administrator">Administrator</option>
+                        <option value="SecurityAnalyst">Analist Securitate</option>
+                        <option value="RegisteredUser">Utilizator Înregistrat</option>
+                        <option value="Visitor">Vizitator</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select admin-filter-select" asp-for="StatusFilter">
+                        <option value="">Toate Statusurile</option>
+                        <option value="active">Activ</option>
+                        <option value="inactive">Inactiv</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select admin-filter-select" asp-for="SortBy">
+                        <option value="name">Sortare după Nume</option>
+                        <option value="email">Sortare după Email</option>
+                        <option value="role">Sortare după Rol</option>
+                        <option value="created">Sortare după Data Creării</option>
+                        <option value="lastlogin">Sortare după Ultima Autentificare</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="btn-group w-100">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-2"></i>Filtrează
+                        </button>
+                        <a asp-page="Index" class="btn btn-outline-secondary admin-reset-filters-btn">
+                            <i class="fas fa-redo"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card-modern admin-users-table-card">
+    <div class="table-responsive">
+        <table class="table admin-users-table mb-0">
+            <thead>
+                <tr>
+                    <th>Utilizator</th>
+                    <th>Contact</th>
+                    <th>Rol</th>
+                    <th>Status</th>
+                    <th>Data Înregistrării</th>
+                    <th>Ultima Activitate</th>
+                    <th class="text-end">Acțiuni</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr class="@(user.IsSystemUser ? "admin-system-user" : "")">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="admin-user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="admin-user-info">
+                                    <div class="admin-user-name">
+                                        @user.FullName
+                                        @if (user.IsSystemUser)
+                                        {
+                                            <span class="admin-system-badge">
+                                                <i class="fas fa-lock"></i>Sistem
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="admin-user-id">ID: @user.Id.Substring(0, 8)...</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="admin-user-email">@user.Email</div>
+                            <div class="admin-user-phone">
+                                @(string.IsNullOrEmpty(user.PhoneNumber) ? "Nu există telefon" : user.PhoneNumber)
+                            </div>
+                        </td>
+                        <td>
+                            <span class="admin-role-badge @GetRoleBadgeClass(user.Role)">
+                                <i class="@GetRoleIcon(user.Role) me-1"></i>@GetRoleDisplayName(user.Role)
+                            </span>
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="admin-status-badge admin-status-active">
+                                    <i class="fas fa-check-circle me-1"></i>Activ
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="admin-status-badge admin-status-inactive">
+                                    <i class="fas fa-times-circle me-1"></i>Inactiv
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="admin-user-date">@user.CreatedAt.ToString("dd MMM yyyy")</div>
+                            <div class="admin-user-time">@user.CreatedAt.ToString("HH:mm")</div>
+                        </td>
+                        <td>
+                            @if (user.LastLoginAt.HasValue)
+                            {
+                                <div class="admin-user-date">@user.LastLoginAt.Value.ToString("dd MMM yyyy")</div>
+                                <div class="admin-user-time">@user.LastLoginAt.Value.ToString("HH:mm")</div>
+                            }
+                            else
+                            {
+                                <span class="admin-status-badge admin-status-never">
+                                    <i class="fas fa-clock me-1"></i>Niciodată
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="admin-action-buttons">
+                                <button class="btn btn-outline-primary btn-sm admin-action-btn admin-btn-view"
+                                        onclick="showUserDetails('@user.Id')" title="Vezi Detalii">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                @if (!user.IsSystemUser)
+                                {
+                                    <a asp-page="Edit" asp-route-id="@user.Id"
+                                       class="btn btn-outline-primary btn-sm admin-action-btn admin-btn-edit" title="Editează">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    <button class="btn btn-outline-danger btn-sm admin-action-btn admin-btn-delete"
+                                            onclick="confirmDelete('@user.Id', '@user.FullName')" title="Șterge">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="admin-status-badge admin-status-protected">
+                                        <i class="fas fa-shield-alt me-1"></i>Protejat
+                                    </span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Users.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Nu s-au găsit utilizatori</p>
+        </div>
+    }
+</div>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                <a class="page-link" asp-page="Index" asp-route-page="@(Model.CurrentPage - 1)"
+                   asp-route-searchTerm="@Model.SearchTerm" asp-route-roleFilter="@Model.RoleFilter"
+                   asp-route-statusFilter="@Model.StatusFilter" asp-route-sortBy="@Model.SortBy">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-page="Index" asp-route-page="@i"
+                       asp-route-searchTerm="@Model.SearchTerm" asp-route-roleFilter="@Model.RoleFilter"
+                       asp-route-statusFilter="@Model.StatusFilter" asp-route-sortBy="@Model.SortBy">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                <a class="page-link" asp-page="Index" asp-route-page="@(Model.CurrentPage + 1)"
+                   asp-route-searchTerm="@Model.SearchTerm" asp-route-roleFilter="@Model.RoleFilter"
+                   asp-route-statusFilter="@Model.StatusFilter" asp-route-sortBy="@Model.SortBy">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}
+
+<!-- User Details Modal -->
+<div class="modal fade admin-user-modal" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalii Utilizator</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Se încarcă...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Form -->
+<form id="deleteForm" method="post" asp-page-handler="Delete" style="display: none;">
+    <input type="hidden" id="deleteUserId" name="id" />
+</form>
+
+@section Scripts {
+    <script>
+        function showUserDetails(userId) {
+            const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+            modal.show();
+
+            // Load user details via AJAX
+            fetch(`/Admin/Users/Details/${userId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('userDetailsContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('userDetailsContent').innerHTML =
+                        '<div class="alert alert-danger">Eroare la încărcarea detaliilor</div>';
+                });
+        }
+
+        function confirmDelete(userId, userName) {
+            if (confirm(`Ești sigur că vrei să ștergi utilizatorul ${userName}?\n\nAceastă acțiune nu poate fi anulată!`)) {
+                document.getElementById('deleteUserId').value = userId;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+
+        // Add animation to stats
+        document.addEventListener('DOMContentLoaded', function() {
+            const statNumbers = document.querySelectorAll('.admin-stat-number');
+            statNumbers.forEach(stat => {
+                const target = parseInt(stat.textContent);
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        stat.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        stat.textContent = Math.floor(current);
+                    }
+                }, 20);
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetRoleBadgeClass(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Administrator => "admin-role-admin",
+            UserRole.SecurityAnalyst => "admin-role-analyst",
+            UserRole.RegisteredUser => "admin-role-user",
+            UserRole.Visitor => "admin-role-visitor",
+            _ => ""
+        };
+    }
+
+    private string GetRoleIcon(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Administrator => "fas fa-crown",
+            UserRole.SecurityAnalyst => "fas fa-user-shield",
+            UserRole.RegisteredUser => "fas fa-user",
+            UserRole.Visitor => "fas fa-eye",
+            _ => "fas fa-user"
+        };
+    }
+
+    private string GetRoleDisplayName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Administrator => "Administrator",
+            UserRole.SecurityAnalyst => "Analist",
+            UserRole.RegisteredUser => "Utilizator",
+            UserRole.Visitor => "Vizitator",
+            _ => role.ToString()
+        };
+    }
 }

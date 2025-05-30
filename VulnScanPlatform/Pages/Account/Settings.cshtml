@@ -1,0 +1,480 @@
+﻿@page
+@model VulnScanPlatform.Pages.Account.SettingsModel
+@{
+    ViewData["Title"] = "Setări Cont";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <!-- Settings Navigation -->
+            <div class="card-modern">
+                <div class="card-body p-0">
+                    <nav class="settings-nav">
+                        <a href="#general" class="settings-nav-item active" data-bs-toggle="tab">
+                            <i class="fas fa-cog"></i>
+                            <span>General</span>
+                        </a>
+                        <a href="#security" class="settings-nav-item" data-bs-toggle="tab">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Securitate</span>
+                        </a>
+                        <a href="#notifications" class="settings-nav-item" data-bs-toggle="tab">
+                            <i class="fas fa-bell"></i>
+                            <span>Notificări</span>
+                        </a>
+                        <a href="#privacy" class="settings-nav-item" data-bs-toggle="tab">
+                            <i class="fas fa-lock"></i>
+                            <span>Confidențialitate</span>
+                        </a>
+                        <a href="#sessions" class="settings-nav-item" data-bs-toggle="tab">
+                            <i class="fas fa-laptop"></i>
+                            <span>Sesiuni</span>
+                        </a>
+                        <a href="#danger" class="settings-nav-item text-danger" data-bs-toggle="tab">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Zona Periculoasă</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- General Settings -->
+                <div class="tab-pane fade show active" id="general">
+                    <div class="card-modern">
+                        <div class="card-header bg-transparent border-0 p-4">
+                            <h5 class="mb-0">Setări Generale</h5>
+                            <p class="text-muted mb-0">Gestionează informațiile de bază ale contului tău</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" asp-page-handler="UpdateGeneral">
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">Limba Preferată</label>
+                                    <select class="form-select" asp-for="GeneralSettings.Language">
+                                        <option value="ro">Română</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">Fus Orar</label>
+                                    <select class="form-select" asp-for="GeneralSettings.TimeZone">
+                                        <option value="Europe/Bucharest">București (UTC+2)</option>
+                                        <option value="Europe/London">Londra (UTC+0)</option>
+                                        <option value="America/New_York">New York (UTC-5)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">Format Dată</label>
+                                    <select class="form-select" asp-for="GeneralSettings.DateFormat">
+                                        <option value="dd/MM/yyyy">DD/MM/YYYY</option>
+                                        <option value="MM/dd/yyyy">MM/DD/YYYY</option>
+                                        <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary-modern btn-modern">
+                                    <i class="fas fa-save me-2"></i>Salvează Modificările
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card-modern mb-4">
+                        <div class="card-header bg-transparent border-0 p-4">
+                            <h5 class="mb-0">Securitate Cont</h5>
+                            <p class="text-muted mb-0">Protejează-ți contul cu setări de securitate avansate</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Change Password -->
+                            <div class="security-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Schimbă Parola</h6>
+                                        <p class="text-muted mb-0">Actualizează parola contului tău</p>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="showPasswordModal()">
+                                        <i class="fas fa-key me-2"></i>Schimbă
+                                    </button>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Two-Factor Authentication -->
+                            <div class="security-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Autentificare în Doi Pași</h6>
+                                        <p class="text-muted mb-0">Adaugă un nivel suplimentar de securitate</p>
+                                    </div>
+                                    @if (Model.SecuritySettings.TwoFactorEnabled)
+                                    {
+                                        <span class="badge badge-gradient-success">
+                                            <i class="fas fa-check-circle me-1"></i>Activat
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-mobile-alt me-2"></i>Activează
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Recovery Codes -->
+                            <div class="security-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Coduri de Recuperare</h6>
+                                        <p class="text-muted mb-0">Generează coduri de backup pentru accesul de urgență</p>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-download me-2"></i>Generează
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card-modern">
+                        <div class="card-header bg-transparent border-0 p-4">
+                            <h5 class="mb-0">Preferințe Notificări</h5>
+                            <p class="text-muted mb-0">Alege cum și când vrei să primești notificări</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" asp-page-handler="UpdateNotifications">
+                                <h6 class="mb-3">Notificări Email</h6>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="NotificationSettings.EmailOnCriticalVulnerability" />
+                                    <label class="form-check-label" asp-for="NotificationSettings.EmailOnCriticalVulnerability">
+                                        Vulnerabilități critice detectate
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="NotificationSettings.EmailOnScanComplete" />
+                                    <label class="form-check-label" asp-for="NotificationSettings.EmailOnScanComplete">
+                                        Scanare completată
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="NotificationSettings.EmailWeeklyReport" />
+                                    <label class="form-check-label" asp-for="NotificationSettings.EmailWeeklyReport">
+                                        Raport săptămânal
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch mb-4">
+                                    <input class="form-check-input" type="checkbox" asp-for="NotificationSettings.EmailMonthlyReport" />
+                                    <label class="form-check-label" asp-for="NotificationSettings.EmailMonthlyReport">
+                                        Raport lunar
+                                    </label>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <h6 class="mb-3">Notificări în Aplicație</h6>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="NotificationSettings.InAppNotifications" />
+                                    <label class="form-check-label" asp-for="NotificationSettings.InAppNotifications">
+                                        Activează notificările în aplicație
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary-modern btn-modern">
+                                    <i class="fas fa-save me-2"></i>Salvează Preferințe
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings -->
+                <div class="tab-pane fade" id="privacy">
+                    <div class="card-modern">
+                        <div class="card-header bg-transparent border-0 p-4">
+                            <h5 class="mb-0">Confidențialitate</h5>
+                            <p class="text-muted mb-0">Controlează cine poate vedea informațiile tale</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" asp-page-handler="UpdatePrivacy">
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">Vizibilitate Profil</label>
+                                    <select class="form-select" asp-for="PrivacySettings.ProfileVisibility">
+                                        <option value="public">Public</option>
+                                        <option value="team">Doar echipa</option>
+                                        <option value="private">Privat</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="PrivacySettings.ShowEmail" />
+                                    <label class="form-check-label" asp-for="PrivacySettings.ShowEmail">
+                                        Afișează email-ul în profil
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" asp-for="PrivacySettings.ShowActivity" />
+                                    <label class="form-check-label" asp-for="PrivacySettings.ShowActivity">
+                                        Afișează activitatea recentă
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch mb-4">
+                                    <input class="form-check-input" type="checkbox" asp-for="PrivacySettings.ShowStatistics" />
+                                    <label class="form-check-label" asp-for="PrivacySettings.ShowStatistics">
+                                        Afișează statistici publice
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary-modern btn-modern">
+                                    <i class="fas fa-save me-2"></i>Salvează Setări
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Sessions -->
+                <div class="tab-pane fade" id="sessions">
+                    <div class="card-modern">
+                        <div class="card-header bg-transparent border-0 p-4">
+                            <h5 class="mb-0">Sesiuni Active</h5>
+                            <p class="text-muted mb-0">Gestionează dispozitivele conectate la contul tău</p>
+                        </div>
+                        <div class="card-body p-4">
+                            @if (Model.ActiveSessions.Any())
+                            {
+                                <div class="sessions-list">
+                                    @foreach (var session in Model.ActiveSessions)
+                                    {
+                                        <div class="session-item">
+                                            <div class="d-flex align-items-center">
+                                                <div class="session-icon">
+                                                    <i class="@GetDeviceIcon(session.DeviceType)"></i>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <h6 class="mb-1">@session.Browser - @session.Device</h6>
+                                                    <p class="text-muted mb-0">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>@session.Location
+                                                        @if (session.IsCurrent)
+                                                        {
+                                                            <span class="badge bg-success ms-2">Sesiune curentă</span>
+                                                        }
+                                                    </p>
+                                                    <small class="text-muted">Ultima activitate: @session.LastActivity.ToString("dd MMM yyyy, HH:mm")</small>
+                                                </div>
+                                                @if (!session.IsCurrent)
+                                                {
+                                                    <form method="post" asp-page-handler="RevokeSession" asp-route-sessionId="@session.Id">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="fas fa-times me-2"></i>Revocă
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="mt-4">
+                                    <form method="post" asp-page-handler="RevokeAllSessions">
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Revocă toate sesiunile
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-laptop fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Nu există alte sesiuni active</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="tab-pane fade" id="danger">
+                    <div class="card-modern border-danger">
+                        <div class="card-header bg-transparent border-0 p-4">
+                            <h5 class="mb-0 text-danger">Zona Periculoasă</h5>
+                            <p class="text-muted mb-0">Acțiuni ireversibile care afectează permanent contul tău</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Deactivate Account -->
+                            <div class="danger-item">
+                                <h6 class="mb-1">Dezactivează Contul</h6>
+                                <p class="text-muted mb-3">Contul tău va fi dezactivat temporar. Poți să-l reactivezi oricând.</p>
+                                <button class="btn btn-warning" onclick="showDeactivateModal()">
+                                    <i class="fas fa-pause-circle me-2"></i>Dezactivează Contul
+                                </button>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Delete Account -->
+                            <div class="danger-item">
+                                <h6 class="mb-1 text-danger">Șterge Contul Permanent</h6>
+                                <p class="text-muted mb-3">
+                                    <strong>Atenție:</strong> Această acțiune este ireversibilă. Toate datele tale vor fi șterse permanent.
+                                </p>
+                                <button class="btn btn-danger" onclick="showDeleteModal()">
+                                    <i class="fas fa-trash-alt me-2"></i>Șterge Contul Permanent
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Schimbă Parola</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="ChangePassword">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Parola Curentă</label>
+                        <input type="password" class="form-control" name="currentPassword" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Parola Nouă</label>
+                        <input type="password" class="form-control" name="newPassword" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirmă Parola Nouă</label>
+                        <input type="password" class="form-control" name="confirmPassword" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulează</button>
+                    <button type="submit" class="btn btn-primary">Schimbă Parola</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .settings-nav {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+            .settings-nav-item:hover {
+                background: rgba(0, 0, 0, 0.05);
+                color: #667eea;
+            }
+
+            .settings-nav-item.active {
+                background: rgba(102, 126, 234, 0.1);
+                color: #667eea;
+                border-left-color: #667eea;
+            }
+
+            .settings-nav-item i {
+                width: 20px;
+                margin-right: 1rem;
+            }
+
+        .security-item,
+        .session-item,
+        .danger-item {
+            padding: 1.5rem 0;
+        }
+
+        .session-item {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+            .session-item:last-child {
+                border-bottom: none;
+            }
+
+        .session-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: #6c757d;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function showPasswordModal() {
+            new bootstrap.Modal(document.getElementById('passwordModal')).show();
+        }
+
+        function showDeactivateModal() {
+            if (confirm('Ești sigur că vrei să dezactivezi contul? Poți să-l reactivezi mai târziu.')) {
+                // Submit deactivation form
+            }
+        }
+
+        function showDeleteModal() {
+            if (confirm('ATENȚIE: Această acțiune este IREVERSIBILĂ! Toate datele tale vor fi șterse permanent. Ești absolut sigur?')) {
+                if (confirm('Ultima confirmare: Vrei să ștergi permanent contul și toate datele asociate?')) {
+                    // Submit deletion form
+                }
+            }
+        }
+    </script>
+}
+
+@functions {
+    private string GetDeviceIcon(string deviceType)
+    {
+        return deviceType switch
+        {
+            "Desktop" => "fas fa-desktop",
+            "Mobile" => "fas fa-mobile-alt",
+            "Tablet" => "fas fa-tablet-alt",
+            _ => "fas fa-laptop"
+        };
+    }
+}

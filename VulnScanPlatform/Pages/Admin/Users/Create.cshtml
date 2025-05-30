@@ -1,4 +1,157 @@
 ﻿@page
 @model VulnScanPlatform.Pages.Admin.Users.CreateModel
 @{
+    ViewData["Title"] = "Creează Utilizator Nou";
+}
+
+<div class="admin-page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Admin/Users/Index">Utilizatori</a></li>
+            <li class="breadcrumb-item active">Creează Utilizator Nou</li>
+        </ol>
+    </nav>
+    <h1 class="admin-page-title">
+        <i class="admin-title-icon fas fa-user-plus"></i>
+        Creează Utilizator Nou
+    </h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.FirstName" class="form-label fw-medium">
+                                <i class="fas fa-user me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.FirstName)
+                            </label>
+                            <input asp-for="Input.FirstName" class="form-control" placeholder="Ex: Ion" />
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.LastName" class="form-label fw-medium">
+                                <i class="fas fa-user me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.LastName)
+                            </label>
+                            <input asp-for="Input.LastName" class="form-control" placeholder="Ex: Popescu" />
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.Email" class="form-label fw-medium">
+                                <i class="fas fa-envelope me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Email)
+                            </label>
+                            <input asp-for="Input.Email" class="form-control" placeholder="Ex: ion.popescu@example.com" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.PhoneNumber" class="form-label fw-medium">
+                                <i class="fas fa-phone me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.PhoneNumber)
+                            </label>
+                            <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Ex: 0721234567" />
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.Role" class="form-label fw-medium">
+                                <i class="fas fa-id-badge me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Role)
+                            </label>
+                            <select asp-for="Input.Role" class="form-select">
+                                <option value="">-- Selectează Rol --</option>
+                                <option value="@VulnScanPlatform.Models.UserRole.RegisteredUser">Utilizator Înregistrat</option>
+                                <option value="@VulnScanPlatform.Models.UserRole.SecurityAnalyst">Analist de Securitate</option>
+                                <option value="@VulnScanPlatform.Models.UserRole.Administrator">Administrator</option>
+                            </select>
+                            <span asp-validation-for="Input.Role" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.Password" class="form-label fw-medium">
+                                <i class="fas fa-lock me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Password)
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="Input.Password" class="form-control" type="password" id="passwordInput" />
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            <div class="form-text">
+                                <small>Minim 8 caractere, include litere mari, mici, cifre și caractere speciale</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.IsActive" class="form-check-input" />
+                                <label asp-for="Input.IsActive" class="form-check-label">
+                                    @Html.DisplayNameFor(m => m.Input.IsActive)
+                                    <small class="text-muted d-block">Utilizatorul poate accesa platforma imediat</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.EmailConfirmed" class="form-check-input" />
+                                <label asp-for="Input.EmailConfirmed" class="form-check-label">
+                                    @Html.DisplayNameFor(m => m.Input.EmailConfirmed)
+                                    <small class="text-muted d-block">Marchează email-ul ca fiind verificat</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.SendWelcomeEmail" class="form-check-input" />
+                                <label asp-for="Input.SendWelcomeEmail" class="form-check-label">
+                                    @Html.DisplayNameFor(m => m.Input.SendWelcomeEmail)
+                                    <small class="text-muted d-block">Trimite email cu detaliile de autentificare</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-page="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Înapoi
+                        </a>
+                        <button type="submit" class="btn btn-primary-modern btn-modern">
+                            <i class="fas fa-user-plus me-2"></i>Creează Utilizator
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            const icon = this.querySelector('i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    </script>
 }

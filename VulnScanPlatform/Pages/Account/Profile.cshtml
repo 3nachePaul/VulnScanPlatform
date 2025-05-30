@@ -1,0 +1,409 @@
+﻿@page
+@model VulnScanPlatform.Pages.Account.ProfileModel
+@{
+    ViewData["Title"] = "Profilul Meu";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <!-- Profile Card -->
+            <div class="card-modern">
+                <div class="card-body text-center p-4">
+                    <div class="profile-avatar-container mb-4">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <button class="btn btn-sm btn-primary profile-avatar-edit">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+
+                    <h4 class="mb-1">@Model.UserProfile.FullName</h4>
+                    <p class="text-muted mb-3">@Model.UserProfile.Email</p>
+
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <span class="badge @GetRoleBadgeClass(Model.UserProfile.Role)">
+                            <i class="fas fa-id-badge me-1"></i>@Model.UserProfile.Role
+                        </span>
+                        @if (Model.UserProfile.IsActive)
+                        {
+                            <span class="badge badge-gradient-success">
+                                <i class="fas fa-check-circle me-1"></i>Activ
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-gradient-danger">
+                                <i class="fas fa-times-circle me-1"></i>Inactiv
+                            </span>
+                        }
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h5 class="mb-0">@Model.TotalApplications</h5>
+                                <small class="text-muted">Aplicații</small>
+                            </div>
+                            <div class="col-4">
+                                <h5 class="mb-0">@Model.TotalScans</h5>
+                                <small class="text-muted">Scanări</small>
+                            </div>
+                            <div class="col-4">
+                                <h5 class="mb-0">@Model.ResolvedVulnerabilities</h5>
+                                <small class="text-muted">Rezolvate</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-0 p-4">
+                    <div class="profile-info-item">
+                        <small class="text-muted">Membru din</small>
+                        <p class="mb-0">@Model.UserProfile.CreatedAt.ToString("dd MMMM yyyy")</p>
+                    </div>
+                    @if (Model.UserProfile.LastLoginAt.HasValue)
+                    {
+                        <div class="profile-info-item mt-3">
+                            <small class="text-muted">Ultima autentificare</small>
+                            <p class="mb-0">@Model.UserProfile.LastLoginAt.Value.ToString("dd MMM yyyy, HH:mm")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-modern mt-4">
+                <div class="card-body p-4">
+                    <h6 class="mb-3">Acțiuni Rapide</h6>
+                    <div class="d-grid gap-2">
+                        <a href="/Account/Settings" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-cog me-2"></i>Setări Cont
+                        </a>
+                        <a href="/Account/ChangePassword" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-key me-2"></i>Schimbă Parola
+                        </a>
+                        <a href="/Account/Security" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-shield-alt me-2"></i>Securitate
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Profile Details -->
+            <div class="card-modern">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Informații Profil</h5>
+                        <button class="btn btn-primary-modern btn-modern btn-sm" onclick="toggleEditMode()">
+                            <i class="fas fa-edit me-2"></i>Editează
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="post" id="profileForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-medium">Prenume</label>
+                                <input type="text" class="form-control profile-input" asp-for="Input.FirstName" readonly />
+                                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-medium">Nume</label>
+                                <input type="text" class="form-control profile-input" asp-for="Input.LastName" readonly />
+                                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-medium">Email</label>
+                                <input type="email" class="form-control profile-input" asp-for="Input.Email" readonly />
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-medium">Telefon</label>
+                                <input type="tel" class="form-control profile-input" asp-for="Input.PhoneNumber" readonly />
+                                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12 mb-4">
+                                <label class="form-label fw-medium">Bio</label>
+                                <textarea class="form-control profile-input" asp-for="Input.Bio" rows="3" readonly
+                                          placeholder="Spune-ne ceva despre tine..."></textarea>
+                                <span asp-validation-for="Input.Bio" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-medium">Companie</label>
+                                <input type="text" class="form-control profile-input" asp-for="Input.Company" readonly />
+                                <span asp-validation-for="Input.Company" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-medium">Poziție</label>
+                                <input type="text" class="form-control profile-input" asp-for="Input.JobTitle" readonly />
+                                <span asp-validation-for="Input.JobTitle" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="profile-actions" style="display: none;">
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="cancelEdit()">
+                                    <i class="fas fa-times me-2"></i>Anulează
+                                </button>
+                                <button type="submit" class="btn btn-primary-modern btn-modern">
+                                    <i class="fas fa-save me-2"></i>Salvează Modificările
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="card-modern mt-4">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <h5 class="mb-0">Activitate Recentă</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.RecentActivities.Any())
+                    {
+                        <div class="activity-timeline">
+                            @foreach (var activity in Model.RecentActivities)
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon @GetActivityIconClass(activity.Type)">
+                                        <i class="@GetActivityIcon(activity.Type)"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p class="mb-1">@activity.Description</p>
+                                        <small class="text-muted">@GetRelativeTime(activity.CreatedAt)</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Nu există activitate recentă</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .profile-avatar-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-stats {
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-info-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .profile-input[readonly] {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .activity-timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .activity-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+
+        .activity-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .activity-icon {
+            position: absolute;
+            left: -40px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #e9ecef;
+        }
+
+        .activity-icon.icon-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .activity-icon.icon-primary {
+            background: #cce5ff;
+            border-color: #b8daff;
+            color: #004085;
+        }
+
+        .activity-icon.icon-warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+
+        .activity-icon.icon-danger {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function toggleEditMode() {
+            const inputs = document.querySelectorAll('.profile-input');
+            const actions = document.querySelector('.profile-actions');
+            const editBtn = event.target.closest('button');
+
+            inputs.forEach(input => {
+                input.readOnly = false;
+                input.classList.remove('form-control');
+                input.classList.add('form-control-modern');
+            });
+
+            actions.style.display = 'block';
+            editBtn.style.display = 'none';
+        }
+
+        function cancelEdit() {
+            const inputs = document.querySelectorAll('.profile-input');
+            const actions = document.querySelector('.profile-actions');
+            const editBtn = document.querySelector('.btn-primary-modern');
+
+            inputs.forEach(input => {
+                input.readOnly = true;
+                input.classList.remove('form-control-modern');
+                input.classList.add('form-control');
+            });
+
+            actions.style.display = 'none';
+            editBtn.style.display = 'inline-block';
+
+            // Reset form
+            document.getElementById('profileForm').reset();
+        }
+    </script>
+}
+
+@functions {
+    private string GetRoleBadgeClass(string role)
+    {
+        return role switch
+        {
+            "Administrator" => "badge-gradient-danger",
+            "SecurityAnalyst" => "badge-gradient-primary",
+            "RegisteredUser" => "badge-gradient-success",
+            _ => "badge-gradient-secondary"
+        };
+    }
+
+    private string GetActivityIconClass(string type)
+    {
+        return type switch
+        {
+            "scan_completed" => "icon-success",
+            "app_added" => "icon-primary",
+            "vulnerability_found" => "icon-danger",
+            "report_generated" => "icon-warning",
+            _ => "icon-primary"
+        };
+    }
+
+    private string GetActivityIcon(string type)
+    {
+        return type switch
+        {
+            "scan_completed" => "fas fa-check",
+            "app_added" => "fas fa-plus",
+            "vulnerability_found" => "fas fa-bug",
+            "report_generated" => "fas fa-file-pdf",
+            _ => "fas fa-circle"
+        };
+    }
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "Chiar acum";
+        if (timeSpan.TotalMinutes < 60)
+            return $"Acum {(int)timeSpan.TotalMinutes} minute";
+        if (timeSpan.TotalHours < 24)
+            return $"Acum {(int)timeSpan.TotalHours} ore";
+        if (timeSpan.TotalDays < 7)
+            return $"Acum {(int)timeSpan.TotalDays} zile";
+
+        return dateTime.ToString("dd MMM yyyy");
+    }
+}
