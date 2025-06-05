@@ -1,0 +1,28 @@
+﻿@page "{id}"
+@model VulnScanPlatform.Pages.Admin.Users.DetailsModel
+@{
+    ViewData["Title"] = "Detalii Utilizator";
+}
+
+<div class="admin-page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Admin/Users/Index">Utilizatori</a></li>
+            <li class="breadcrumb-item active">Detalii Utilizator</li>
+        </ol>
+    </nav>
+    <h1 class="admin-page-title">
+        <i class="admin-title-icon fas fa-user"></i>
+        Detalii Utilizator
+    </h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card-modern">
+            <div class="card-body p-4">
+                <partial name="_UserDetails" model="Model.UserDetails" />
+            </div>
+        </div>
+    </div>
+</div>

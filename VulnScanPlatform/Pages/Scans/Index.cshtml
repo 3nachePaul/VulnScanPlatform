@@ -1,0 +1,165 @@
+﻿@page
+@model VulnScanPlatform.Pages.Notifications.IndexModel
+@{
+    ViewData["Title"] = "Invitații";
+}
+
+<div class="container">
+    <div class="page-header mb-4">
+        <h1 class="page-title">
+            <i class="fas fa-bell text-primary me-3"></i>
+            Invitații și Notificări
+        </h1>
+        <p class="text-muted">Gestionează invitațiile primite pentru rapoarte partajate</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Pending Invitations -->
+            @if (Model.PendingInvitations.Any())
+            {
+                <div class="card-modern mb-4">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-envelope me-2"></i>Invitații Noi
+                            <span class="badge bg-primary ms-2">@Model.PendingInvitations.Count</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @foreach (var invitation in Model.PendingInvitations)
+                            {
+                                <div class="list-group-item p-4">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-file-alt text-primary me-2"></i>
+                                                @invitation.Report.Title
+                                            </h6>
+                                            <p class="mb-2 text-muted">
+                                                <strong>@invitation.InvitedBy.FullName</strong> te-a invitat să vezi acest raport
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                @GetRelativeTime(invitation.CreatedAt)
+                                            </small>
+                                        </div>
+                                        <div class="ms-3">
+                                            <form method="post" asp-page-handler="AcceptInvitation" class="d-inline">
+                                                <input type="hidden" name="invitationId" value="@invitation.Id" />
+                                                <button type="submit" class="btn btn-success btn-sm me-2">
+                                                    <i class="fas fa-check me-1"></i>Acceptă
+                                                </button>
+                                            </form>
+                                            <form method="post" asp-page-handler="DeclineInvitation" class="d-inline">
+                                                <input type="hidden" name="invitationId" value="@invitation.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-times me-1"></i>Refuză
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-modern mb-4">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nu ai invitații noi</h5>
+                        <p class="text-muted">Când cineva te invită să vezi un raport, va apărea aici</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Accepted Invitations -->
+            @if (Model.AcceptedInvitations.Any())
+            {
+                <div class="card-modern">
+                    <div class="card-header bg-transparent border-0 p-4">
+                        <h5 class="mb-0">
+                            <i class="fas fa-folder-open me-2"></i>Rapoarte Partajate cu Mine
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @foreach (var invitation in Model.AcceptedInvitations)
+                            {
+                                <a href="/Reports/Details/@invitation.ReportId" class="list-group-item list-group-item-action p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="report-icon me-3">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">@invitation.Report.Title</h6>
+                                            <p class="mb-1 text-muted small">
+                                                Partajat de <strong>@invitation.InvitedBy.FullName</strong>
+                                            </p>
+                                            <div class="d-flex align-items-center text-muted small">
+                                                <i class="fas fa-clock me-1"></i>
+                                                <span>Acceptat @GetRelativeTime(invitation.AcceptedAt.Value)</span>
+                                                @if (invitation.Report.ChatMessages?.Count > 0)
+                                                {
+                                                    <span class="mx-2">•</span>
+                                                    <i class="fas fa-comments me-1"></i>
+                                                    <span>@invitation.Report.ChatMessages.Count mesaje</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-chevron-right text-muted"></i>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .report-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 1.25rem;
+        }
+
+        .list-group-item-action:hover .report-icon {
+            background: rgba(102, 126, 234, 0.2);
+        }
+    </style>
+}
+
+@functions {
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "Chiar acum";
+        if (timeSpan.TotalMinutes < 60)
+            return $"Acum {(int)timeSpan.TotalMinutes} minute";
+        if (timeSpan.TotalHours < 24)
+            return $"Acum {(int)timeSpan.TotalHours} ore";
+        if (timeSpan.TotalDays < 7)
+            return $"Acum {(int)timeSpan.TotalDays} zile";
+        if (timeSpan.TotalDays < 30)
+            return $"Acum {(int)(timeSpan.TotalDays / 7)} săptămâni";
+
+        return dateTime.ToString("dd MMM yyyy");
+    }
+}

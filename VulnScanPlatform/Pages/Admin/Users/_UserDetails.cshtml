@@ -1,0 +1,236 @@
+﻿@using VulnScanPlatform.Models
+@model VulnScanPlatform.Models.User
+
+<div class="admin-user-details">
+    <div class="text-center mb-4">
+        <div class="admin-user-avatar mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+            <i class="fas fa-user"></i>
+        </div>
+        <h4 class="mb-1">@Model.FullName</h4>
+        <p class="text-muted mb-2">@Model.Email</p>
+        <div>
+            <span class="badge @GetRoleBadgeClass(Model.Role) me-2">
+                <i class="@GetRoleIcon(Model.Role) me-1"></i>@GetRoleDisplayName(Model.Role)
+            </span>
+            @if (Model.IsActive)
+            {
+                <span class="badge badge-gradient-success">
+                    <i class="fas fa-check-circle me-1"></i>Activ
+                </span>
+            }
+            else
+            {
+                <span class="badge badge-gradient-danger">
+                    <i class="fas fa-times-circle me-1"></i>Inactiv
+                </span>
+            }
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="admin-user-details-section">
+        <h6 class="admin-user-details-title">Informații Personale</h6>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Nume Complet</span>
+            <span class="admin-user-details-value">@Model.FullName</span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Email</span>
+            <span class="admin-user-details-value">
+                @Model.Email
+                @if (Model.EmailConfirmed)
+                {
+                    <i class="fas fa-check-circle text-success ms-1" title="Email confirmat"></i>
+                }
+                else
+                {
+                    <i class="fas fa-exclamation-circle text-warning ms-1" title="Email neconfirmat"></i>
+                }
+            </span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Telefon</span>
+            <span class="admin-user-details-value">
+                @(string.IsNullOrEmpty(Model.PhoneNumber) ? "Nu există" : Model.PhoneNumber)
+                @if (!string.IsNullOrEmpty(Model.PhoneNumber) && Model.PhoneNumberConfirmed)
+                {
+                    <i class="fas fa-check-circle text-success ms-1" title="Telefon confirmat"></i>
+                }
+            </span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">ID Utilizator</span>
+            <span class="admin-user-details-value font-monospace">@Model.Id</span>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="admin-user-details-section">
+        <h6 class="admin-user-details-title">Informații Cont</h6>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Rol</span>
+            <span class="admin-user-details-value">@GetRoleDisplayName(Model.Role)</span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Status</span>
+            <span class="admin-user-details-value">
+                @if (Model.IsActive)
+                {
+                    <span class="text-success">Activ</span>
+                }
+                else
+                {
+                    <span class="text-danger">Inactiv</span>
+                }
+            </span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Data Înregistrării</span>
+            <span class="admin-user-details-value">@Model.CreatedAt.ToString("dd MMMM yyyy, HH:mm")</span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Ultima Autentificare</span>
+            <span class="admin-user-details-value">
+                @if (Model.LastLoginAt.HasValue)
+                {
+                    @Model.LastLoginAt.Value.ToString("dd MMMM yyyy, HH:mm")
+                    <small class="text-muted d-block">@GetRelativeTime(Model.LastLoginAt.Value)</small>
+                }
+                else
+                {
+                    <span class="text-muted">Niciodată</span>
+                }
+            </span>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="admin-user-details-section">
+        <h6 class="admin-user-details-title">Securitate</h6>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Autentificare în Doi Pași</span>
+            <span class="admin-user-details-value">
+                @if (Model.TwoFactorEnabled)
+                {
+                    <span class="text-success"><i class="fas fa-check me-1"></i>Activat</span>
+                }
+                else
+                {
+                    <span class="text-muted"><i class="fas fa-times me-1"></i>Dezactivat</span>
+                }
+            </span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Blocare Cont</span>
+            <span class="admin-user-details-value">
+                @if (Model.LockoutEnabled && Model.LockoutEnd.HasValue && Model.LockoutEnd > DateTimeOffset.Now)
+                {
+                    <span class="text-danger">Blocat până la @Model.LockoutEnd.Value.ToString("dd MMM yyyy, HH:mm")</span>
+                }
+                else
+                {
+                    <span class="text-success">Nu este blocat</span>
+                }
+            </span>
+        </div>
+
+        <div class="admin-user-details-item">
+            <span class="admin-user-details-label">Încercări Eșuate</span>
+            <span class="admin-user-details-value">@Model.AccessFailedCount</span>
+        </div>
+
+        @if (Model.IsSystemUser)
+        {
+            <div class="admin-user-details-item">
+                <span class="admin-user-details-label">Tip Cont</span>
+                <span class="admin-user-details-value">
+                    <span class="badge bg-warning">
+                        <i class="fas fa-lock me-1"></i>Utilizator Sistem
+                    </span>
+                </span>
+            </div>
+        }
+    </div>
+
+    <hr>
+
+    <div class="d-grid gap-2">
+        <a href="/Admin/Users/Edit/@Model.Id" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Editează Utilizator
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Închide
+        </button>
+    </div>
+</div>
+
+@functions {
+    private string GetRoleBadgeClass(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Administrator => "badge-gradient-danger",
+            UserRole.SecurityAnalyst => "badge-gradient-primary",
+            UserRole.RegisteredUser => "badge-gradient-success",
+            UserRole.Visitor => "badge-gradient-secondary",
+            _ => ""
+        };
+    }
+
+    private string GetRoleIcon(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Administrator => "fas fa-crown",
+            UserRole.SecurityAnalyst => "fas fa-user-shield",
+            UserRole.RegisteredUser => "fas fa-user",
+            UserRole.Visitor => "fas fa-eye",
+            _ => "fas fa-user"
+        };
+    }
+
+    private string GetRoleDisplayName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Administrator => "Administrator",
+            UserRole.SecurityAnalyst => "Analist de Securitate",
+            UserRole.RegisteredUser => "Utilizator Înregistrat",
+            UserRole.Visitor => "Vizitator",
+            _ => role.ToString()
+        };
+    }
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "Chiar acum";
+        if (timeSpan.TotalMinutes < 60)
+            return $"Acum {(int)timeSpan.TotalMinutes} minute";
+        if (timeSpan.TotalHours < 24)
+            return $"Acum {(int)timeSpan.TotalHours} ore";
+        if (timeSpan.TotalDays < 7)
+            return $"Acum {(int)timeSpan.TotalDays} zile";
+        if (timeSpan.TotalDays < 30)
+            return $"Acum {(int)(timeSpan.TotalDays / 7)} săptămâni";
+        if (timeSpan.TotalDays < 365)
+            return $"Acum {(int)(timeSpan.TotalDays / 30)} luni";
+
+        return $"Acum {(int)(timeSpan.TotalDays / 365)} ani";
+    }
+}

@@ -1,4 +1,333 @@
-﻿@page
+﻿@page "{id}"
 @model VulnScanPlatform.Pages.Admin.Users.EditModel
 @{
+    ViewData["Title"] = "Editează Utilizator";
+}
+
+<div class="admin-page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Admin/Users/Index">Utilizatori</a></li>
+            <li class="breadcrumb-item active">Editează Utilizator</li>
+        </ol>
+    </nav>
+    <h1 class="admin-page-title">
+        <i class="admin-title-icon fas fa-user-edit"></i>
+        Editează Utilizator
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-header bg-transparent border-0 p-4">
+                <div class="d-flex align-items-center">
+                    <div class="admin-user-avatar me-3">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">@Model.UserToEdit.FullName</h5>
+                        <p class="text-muted mb-0">@Model.UserToEdit.Email</p>
+                    </div>
+                    @if (Model.UserToEdit.IsSystemUser)
+                    {
+                        <span class="ms-auto badge bg-warning">
+                            <i class="fas fa-lock me-1"></i>Utilizator Sistem
+                        </span>
+                    }
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                    <input type="hidden" asp-for="Input.Id" />
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.FirstName" class="form-label fw-medium">
+                                <i class="fas fa-user me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.FirstName)
+                            </label>
+                            @if (Model.UserToEdit.IsSystemUser)
+                            {
+                                <input asp-for="Input.FirstName" class="form-control" readonly />
+                            }
+                            else
+                            {
+                                <input asp-for="Input.FirstName" class="form-control" />
+                            }
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.LastName" class="form-label fw-medium">
+                                <i class="fas fa-user me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.LastName)
+                            </label>
+                            @* <input asp-for="Input.LastName" class="form-control" @(Model.UserToEdit.IsSystemUser ? "readonly" : "") />*@
+                            @if (Model.UserToEdit.IsSystemUser)
+                            {
+                                <input asp-for="Input.LastName" class="form-control" readonly />
+                            }
+                            else
+                            {
+                                <input asp-for="Input.LastName" class="form-control" />
+                            }
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.Email" class="form-label fw-medium">
+                                <i class="fas fa-envelope me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Email)
+                            </label>
+                            <input asp-for="Input.Email" class="form-control" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.PhoneNumber" class="form-label fw-medium">
+                                <i class="fas fa-phone me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.PhoneNumber)
+                            </label>
+                            <input asp-for="Input.PhoneNumber" class="form-control" />
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Input.Role" class="form-label fw-medium">
+                                <i class="fas fa-id-badge me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Role)
+                            </label>
+                            @*<select asp-for="Input.Role" class="form-select" @(Model.UserToEdit.IsSystemUser ? "disabled" : "")>
+                                <option value="@VulnScanPlatform.Models.UserRole.RegisteredUser">Utilizator Înregistrat</option>
+                                <option value="@VulnScanPlatform.Models.UserRole.SecurityAnalyst">Analist de Securitate</option>
+                                <option value="@VulnScanPlatform.Models.UserRole.Administrator">Administrator</option>
+                            </select>*@
+                            @if (Model.UserToEdit.IsSystemUser)
+                            {
+                                <select asp-for="Input.Role" class="form-select" disabled>
+                                    <option value="@VulnScanPlatform.Models.UserRole.RegisteredUser">Utilizator Înregistrat</option>
+                                    <option value="@VulnScanPlatform.Models.UserRole.SecurityAnalyst">Analist de Securitate</option>
+                                    <option value="@VulnScanPlatform.Models.UserRole.Administrator">Administrator</option>
+                                </select>
+                            }
+                            else
+                            {
+                                <select asp-for="Input.Role" class="form-select">
+                                    <option value="@VulnScanPlatform.Models.UserRole.RegisteredUser">Utilizator Înregistrat</option>
+                                    <option value="@VulnScanPlatform.Models.UserRole.SecurityAnalyst">Analist de Securitate</option>
+                                    <option value="@VulnScanPlatform.Models.UserRole.Administrator">Administrator</option>
+                                </select>
+                            }
+                            <span asp-validation-for="Input.Role" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-medium">
+                                <i class="fas fa-lock me-2 text-primary"></i>Resetare Parolă
+                            </label>
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="showResetPasswordModal()">
+                                <i class="fas fa-key me-2"></i>Resetează Parola
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.IsActive" class="form-check-input" />
+                                <label asp-for="Input.IsActive" class="form-check-label">
+                                    @Html.DisplayNameFor(m => m.Input.IsActive)
+                                    <small class="text-muted d-block">Utilizatorul poate accesa platforma</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.EmailConfirmed" class="form-check-input" />
+                                <label asp-for="Input.EmailConfirmed" class="form-check-label">
+                                    @Html.DisplayNameFor(m => m.Input.EmailConfirmed)
+                                    <small class="text-muted d-block">Email-ul utilizatorului este verificat</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.TwoFactorEnabled" class="form-check-input" />
+                                <label asp-for="Input.TwoFactorEnabled" class="form-check-label">
+                                    @Html.DisplayNameFor(m => m.Input.TwoFactorEnabled)
+                                    <small class="text-muted d-block">Necesită autentificare în doi pași</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (Model.UserToEdit.IsSystemUser)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Utilizatorii de sistem au restricții de editare pentru a proteja integritatea platformei.
+                        </div>
+                    }
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between">
+                        <a asp-page="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Înapoi
+                        </a>
+                        <button type="submit" class="btn btn-primary-modern btn-modern">
+                            <i class="fas fa-save me-2"></i>Salvează Modificările
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- User Information Card -->
+        <div class="card-modern mb-4">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h6 class="mb-0">Informații Utilizator</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="info-item mb-3">
+                    <small class="text-muted">ID Utilizator</small>
+                    <p class="mb-0 font-monospace">@Model.UserToEdit.Id.Substring(0, 8)...</p>
+                </div>
+                
+                <div class="info-item mb-3">
+                    <small class="text-muted">Data Înregistrării</small>
+                    <p class="mb-0">@Model.UserToEdit.CreatedAt.ToString("dd MMMM yyyy, HH:mm")</p>
+                </div>
+                
+                @if (Model.UserToEdit.LastLoginAt.HasValue)
+                {
+                    <div class="info-item mb-3">
+                        <small class="text-muted">Ultima Autentificare</small>
+                        <p class="mb-0">@Model.UserToEdit.LastLoginAt.Value.ToString("dd MMMM yyyy, HH:mm")</p>
+                    </div>
+                }
+                
+                <div class="info-item">
+                    <small class="text-muted">Status Cont</small>
+                    <p class="mb-0">
+                        @if (Model.UserToEdit.IsActive)
+                        {
+                            <span class="badge badge-gradient-success">
+                                <i class="fas fa-check-circle me-1"></i>Activ
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-gradient-danger">
+                                <i class="fas fa-times-circle me-1"></i>Inactiv
+                            </span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card-modern">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h6 class="mb-0">Acțiuni Rapide</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-info btn-sm" onclick="viewUserActivity('@Model.UserToEdit.Id')">
+                        <i class="fas fa-history me-2"></i>Vezi Activitate
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="sendPasswordReset()">
+                        <i class="fas fa-envelope me-2"></i>Trimite Email Resetare
+                    </button>
+                    @if (!Model.UserToEdit.IsSystemUser)
+                    {
+                        <button class="btn btn-outline-danger btn-sm" onclick="confirmDeactivate()">
+                            <i class="fas fa-user-slash me-2"></i>Dezactivează Cont
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resetare Parolă</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="ResetPassword">
+                <input type="hidden" name="userId" value="@Model.UserToEdit.Id" />
+                <div class="modal-body">
+                    <p>Setează o nouă parolă pentru utilizatorul <strong>@Model.UserToEdit.FullName</strong>.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Parolă Nouă</label>
+                        <input type="password" class="form-control" name="newPassword" required 
+                               minlength="8" placeholder="Minim 8 caractere" />
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="requireChange" id="requireChange" checked>
+                        <label class="form-check-label" for="requireChange">
+                            Solicită schimbarea parolei la următoarea autentificare
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulează</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-key me-2"></i>Resetează Parola
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        function showResetPasswordModal() {
+            new bootstrap.Modal(document.getElementById('resetPasswordModal')).show();
+        }
+        
+        function viewUserActivity(userId) {
+            // Redirect to user activity page
+            window.location.href = `/Admin/Users/Activity/${userId}`;
+        }
+        
+        function sendPasswordReset() {
+            if (confirm('Trimite email de resetare parolă către @Model.UserToEdit.Email?')) {
+                // Submit form to send password reset email
+                fetch('/Admin/Users/SendPasswordReset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ userId: '@Model.UserToEdit.Id' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                });
+            }
+        }
+        
+        function confirmDeactivate() {
+            if (confirm('Ești sigur că vrei să dezactivezi acest cont? Utilizatorul nu va mai putea accesa platforma.')) {
+                // Submit deactivation
+                document.getElementById('Input_IsActive').checked = false;
+                document.querySelector('form').submit();
+            }
+        }
+    </script>
 }
