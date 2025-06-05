@@ -1,0 +1,509 @@
+﻿@page
+@model VulnScanPlatform.Pages.Applications.IndexModel
+@using VulnScanPlatform.Models
+@using System.Text.RegularExpressions;
+@{
+    ViewData["Title"] = "Aplicațiile Mele";
+}
+
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-globe text-primary me-3"></i>
+                Aplicațiile Mele
+            </h1>
+            <p class="text-muted">Gestionează aplicațiile și fișierele pentru scanare</p>
+        </div>
+        <button class="btn btn-primary-modern btn-modern" data-bs-toggle="modal" data-bs-target="#addApplicationModal">
+            <i class="fas fa-plus me-2"></i>Adaugă Aplicație
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon text-primary">
+                <i class="fas fa-globe"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalApplications</h3>
+            <p class="stats-label">Total Aplicații</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon text-success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="stats-number">@Model.ActiveApplications</h3>
+            <p class="stats-label">Active</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon text-warning">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="stats-number">@Model.SharedApplications</h3>
+            <p class="stats-label">Partajate</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon text-info">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="stats-number">@Model.TotalScans</h3>
+            <p class="stats-label">Scanări Totale</p>
+        </div>
+    </div>
+</div>
+
+<!-- Applications Grid -->
+<div class="row">
+    @if (Model.Applications.Any())
+    {
+        @foreach (var app in Model.Applications)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-modern app-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="app-icon @GetAppIconClass(app.Type)">
+                                <i class="@GetAppIcon(app.Type)"></i>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="startNewScan(@app.Id)">
+                                            <i class="fas fa-search me-2"></i>Scanare Nouă
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/Applications/Details/@app.Id">
+                                            <i class="fas fa-info-circle me-2"></i>Detalii
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="manageCollaborators(@app.Id)">
+                                            <i class="fas fa-users me-2"></i>Colaboratori
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" onclick="deleteApp(@app.Id)">
+                                            <i class="fas fa-trash me-2"></i>Șterge
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h5 class="app-name">@app.Name</h5>
+                        <p class="app-description text-muted">@(app.Description ?? "Fără descriere")</p>
+
+                        <div class="app-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-search me-1"></i>
+                                <span>@app.ScanCount scanări</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-bug me-1"></i>
+                                <span>@app.VulnerabilityCount vulnerabilități</span>
+                            </div>
+                            @if (app.CollaboratorCount > 0)
+                            {
+                                <div class="stat-item">
+                                    <i class="fas fa-users me-1"></i>
+                                    <span>@app.CollaboratorCount colaboratori</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="app-footer">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Ultima scanare: @(app.LastScanDate?.ToString("dd MMM yyyy") ?? "Niciodată")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-globe fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">Nu ai aplicații încă</h4>
+                <p class="text-muted mb-4">Adaugă prima ta aplicație pentru a începe scanarea</p>
+                <button class="btn btn-primary-modern btn-modern" data-bs-toggle="modal" data-bs-target="#addApplicationModal">
+                    <i class="fas fa-plus me-2"></i>Adaugă Prima Aplicație
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add Application Modal -->
+<div class="modal fade" id="addApplicationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Adaugă Aplicație Nouă
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Nume Aplicație</label>
+                        <input type="text" class="form-control" name="applicationName" required
+                               placeholder="Ex: Portal Web Principal" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Descriere (opțional)</label>
+                        <textarea class="form-control" name="description" rows="2"
+                                  placeholder="Descrie pe scurt aplicația..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Tip Aplicație</label>
+                        <select class="form-select" name="applicationType" required>
+                            <option value="WebApplication">Aplicație Web</option>
+                            <option value="API">API</option>
+                            <option value="MobileBackend">Mobile Backend</option>
+                            <option value="Other">Altele</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">
+                            <i class="fas fa-upload me-2"></i>Încarcă Fișier HTML
+                        </label>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" class="form-control d-none" id="htmlFile" name="htmlFile"
+                                   accept=".html,.htm" required />
+                            <div class="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h6>Trage fișierul aici sau click pentru a selecta</h6>
+                                <p class="text-muted mb-0">Acceptăm fișiere HTML și HTM până la 10MB</p>
+                            </div>
+                            <div class="upload-preview d-none">
+                                <i class="fas fa-file-code fa-3x text-success mb-3"></i>
+                                <h6 class="file-name"></h6>
+                                <p class="file-size text-muted"></p>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
+                                    <i class="fas fa-times me-2"></i>Elimină
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">
+                            <i class="fas fa-users me-2"></i>Invită Colaboratori (opțional)
+                        </label>
+                        <div class="collaborators-input">
+                            <div class="input-group mb-2">
+                                <input type="email" class="form-control" id="collaboratorEmail"
+                                       placeholder="email@example.com" />
+                                <button type="button" class="btn btn-outline-primary" onclick="addCollaborator()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="collaboratorsList"></div>
+                        </div>
+                        <small class="text-muted">Colaboratorii vor putea vedea scanările și rapoartele</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulează</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Creează Aplicație
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Start Scan Modal -->
+<div class="modal fade" id="startScanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-search me-2"></i>Configurare Scanare
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="StartScan">
+                <input type="hidden" id="scanAppId" name="applicationId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tip Scanare</label>
+                        <select class="form-select" name="scanType" required>
+                            <option value="Quick">Scanare Rapidă (5-10 min)</option>
+                            <option value="Full" selected>Scanare Completă (15-30 min)</option>
+                            <option value="Custom">Scanare Personalizată</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Invită la Rezultate</label>
+                        <input type="email" class="form-control" name="inviteEmails"
+                               placeholder="email1@example.com, email2@example.com" />
+                        <small class="text-muted">Separă email-urile cu virgulă</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anulează</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-play me-2"></i>Începe Scanarea
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .app-card {
+            height: 100%;
+            transition: var(--transition);
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .app-icon.icon-web {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .app-icon.icon-api {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .app-icon.icon-mobile {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .app-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-description {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            height: 2.5em;
+            overflow: hidden;
+        }
+
+        .app-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .upload-area.drag-over {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .collaborator-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .collaborator-tag button {
+            background: none;
+            border: none;
+            color: #dc3545;
+            padding: 0;
+            margin-left: 0.5rem;
+            cursor: pointer;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        let collaborators = [];
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('htmlFile');
+        const uploadPlaceholder = uploadArea.querySelector('.upload-placeholder');
+        const uploadPreview = uploadArea.querySelector('.upload-preview');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.includes('html')) {
+                fileInput.files = files;
+                showFilePreview(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                showFilePreview(e.target.files[0]);
+            }
+        });
+
+        function showFilePreview(file) {
+            uploadPlaceholder.classList.add('d-none');
+            uploadPreview.classList.remove('d-none');
+            uploadPreview.querySelector('.file-name').textContent = file.name;
+            uploadPreview.querySelector('.file-size').textContent = formatFileSize(file.size);
+        }
+
+        function clearFile() {
+            fileInput.value = '';
+            uploadPlaceholder.classList.remove('d-none');
+            uploadPreview.classList.add('d-none');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Collaborators handling
+        function addCollaborator() {
+            const emailInput = document.getElementById('collaboratorEmail');
+            const email = emailInput.value.trim();
+            
+            if (email && validateEmail(email) && !collaborators.includes(email)) {
+                collaborators.push(email);
+                updateCollaboratorsList();
+                emailInput.value = '';
+            }
+        }
+
+        function removeCollaborator(email) {
+            collaborators = collaborators.filter(c => c !== email);
+            updateCollaboratorsList();
+        }
+
+        function updateCollaboratorsList() {
+            const list = document.getElementById('collaboratorsList');
+            list.innerHTML = collaborators.map(email => `
+                <span class="collaborator-tag">
+                    ${email}
+                    <button type="button" onclick="removeCollaborator('${email}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <input type="hidden" name="collaborators" value="${email}" />
+                </span>
+            `).join('');
+        }
+
+        function validateEmail(email) {
+            const regex = new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+            return regex.test(email);
+        }
+
+        // Scan modal
+        function startNewScan(appId) {
+            document.getElementById('scanAppId').value = appId;
+            new bootstrap.Modal(document.getElementById('startScanModal')).show();
+        }
+
+        function manageCollaborators(appId) {
+            window.location.href = `/Applications/Collaborators/${appId}`;
+        }
+
+        function deleteApp(appId) {
+            if (confirm('Ești sigur că vrei să ștergi această aplicație? Toate scanările și rapoartele asociate vor fi șterse.')) {
+                // Submit delete form
+            }
+        }
+    </script>
+}
+
+@functions {
+    private string GetAppIconClass(VulnScanPlatform.Models.ApplicationType type)
+    {
+        return type switch
+        {
+            VulnScanPlatform.Models.ApplicationType.WebApplication => "icon-web",
+            VulnScanPlatform.Models.ApplicationType.API => "icon-api",
+            VulnScanPlatform.Models.ApplicationType.MobileBackend => "icon-mobile",
+            _ => "icon-web"
+        };
+    }
+
+    private string GetAppIcon(VulnScanPlatform.Models.ApplicationType type)
+    {
+        return type switch
+        {
+            VulnScanPlatform.Models.ApplicationType.WebApplication => "fas fa-globe",
+            VulnScanPlatform.Models.ApplicationType.API => "fas fa-code",
+            VulnScanPlatform.Models.ApplicationType.MobileBackend => "fas fa-mobile-alt",
+            _ => "fas fa-cube"
+        };
+    }
+}

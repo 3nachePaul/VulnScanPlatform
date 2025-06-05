@@ -1,7 +1,6 @@
-﻿// Place these in VulnScanPlatform.Models namespace (e.g., Models/Report.cs, Models/ReportInvitation.cs, Models/ChatMessage.cs)
-namespace VulnScanPlatform.Models
+﻿namespace VulnScanPlatform.Models
 {
-    public class Report
+    public partial class Report
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -37,5 +36,11 @@ namespace VulnScanPlatform.Models
         public DateTime CreatedAt { get; set; }
         public User User { get; set; }
         public Report Report { get; set; }
+    }
+
+    public partial class Report
+    {
+        public int? ScanId { get; set; }
+        public Scan Scan { get; set; }
     }
 }
