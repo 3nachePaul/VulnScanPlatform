@@ -1,0 +1,418 @@
+﻿@page
+@model VulnScanPlatform.Pages.Vulnerabilities.IndexModel
+@{
+    ViewData["Title"] = "Vulnerabilități Detectate - Comunitate";
+}
+
+<div class="vulnerabilities-page">
+    <div class="page-header mb-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="page-title mb-3">
+                        <i class="fas fa-shield-virus text-danger me-3"></i>
+                        Vulnerabilități Detectate de Comunitate
+                    </h1>
+                    <p class="lead text-muted">
+                        Explorează vulnerabilitățile descoperite de comunitatea noastră și învață din experiențele altora.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a asp-page="/Vulnerabilities/Create" class="btn btn-primary-modern btn-lg">
+                            <i class="fas fa-plus me-2"></i>Postează Scanare
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filtre și sortare -->
+        <div class="filters-section mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex gap-2">
+                        <a href="?sortBy=recent" class="btn @(Model.SortBy == "recent" ? "btn-primary" : "btn-outline-primary")">
+                            <i class="fas fa-clock me-2"></i>Recente
+                        </a>
+                        <a href="?sortBy=popular" class="btn @(Model.SortBy == "popular" ? "btn-primary" : "btn-outline-primary")">
+                            <i class="fas fa-fire me-2"></i>Populare
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <span class="text-muted">
+                        <i class="fas fa-list me-2"></i>@Model.Posts.Count postări
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista postărilor -->
+        @if (Model.Posts.Any())
+        {
+            <div class="posts-grid">
+                @foreach (var post in Model.Posts)
+                {
+                    <div class="vulnerability-post-card" data-post-id="@post.Id">
+                        <div class="post-header">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h3 class="post-title">@post.Title</h3>
+                                    <div class="post-meta">
+                                        <span class="author">
+                                            <i class="fas fa-user me-1"></i>@post.PostedByName
+                                        </span>
+                                        <span class="date">
+                                            <i class="fas fa-calendar me-1"></i>@post.PostedAt.ToString("dd MMM yyyy")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="vulnerability-summary">
+                                    <span class="vuln-count total">
+                                        <i class="fas fa-bug"></i> @post.VulnerabilityCount
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="post-body">
+                            <p class="post-description">@post.Description</p>
+
+                            <!-- Statistici vulnerabilități -->
+                            <div class="vulnerability-stats">
+                                @if (post.CriticalCount > 0)
+                                {
+                                    <span class="stat-badge critical">
+                                        <i class="fas fa-exclamation-circle"></i> @post.CriticalCount Critice
+                                    </span>
+                                }
+                                @if (post.HighCount > 0)
+                                {
+                                    <span class="stat-badge high">
+                                        <i class="fas fa-exclamation-triangle"></i> @post.HighCount Ridicate
+                                    </span>
+                                }
+                                @if (post.MediumCount > 0)
+                                {
+                                    <span class="stat-badge medium">
+                                        <i class="fas fa-info-circle"></i> @post.MediumCount Medii
+                                    </span>
+                                }
+                                @if (post.LowCount > 0)
+                                {
+                                    <span class="stat-badge low">
+                                        <i class="fas fa-info"></i> @post.LowCount Scăzute
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="post-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="vote-section">
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <button class="btn btn-vote @(post.HasUserVoted ? "voted" : "")"
+                                                onclick="toggleVote(@post.Id)">
+                                            <i class="fas fa-arrow-up"></i>
+                                            <span class="vote-count">@post.UpvoteCount</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="vote-display">
+                                            <i class="fas fa-arrow-up"></i>
+                                            <span class="vote-count">@post.UpvoteCount</span>
+                                        </div>
+                                    }
+                                </div>
+                                <a href="/Vulnerabilities/Details/@post.Id" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-2"></i>Vezi Detalii
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state text-center py-5">
+                <i class="fas fa-shield-virus fa-5x text-muted mb-4"></i>
+                <h3 class="text-muted">Nu există postări încă</h3>
+                <p class="text-muted mb-4">Fii primul care împărtășește o scanare de vulnerabilități!</p>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-page="/Vulnerabilities/Create" class="btn btn-primary-modern">
+                        <i class="fas fa-plus me-2"></i>Postează Prima Scanare
+                    </a>
+                }
+                else
+                {
+                    <a asp-page="/Account/Login" class="btn btn-primary-modern">
+                        <i class="fas fa-sign-in-alt me-2"></i>Autentifică-te pentru a posta
+                    </a>
+                }
+            </div>
+        }
+
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <div class="cta-section">
+                <div class="cta-card">
+                    <h4>Vrei să contribui?</h4>
+                    <p>Autentifică-te pentru a posta propriile scanări și a vota postările comunității.</p>
+                    <a asp-page="/Account/Login" class="btn btn-primary-modern">
+                        <i class="fas fa-sign-in-alt me-2"></i>Autentifică-te
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .vulnerabilities-page {
+            min-height: 80vh;
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 3rem 0;
+            margin: -2rem -15px 2rem -15px;
+            border-radius: 0 0 2rem 2rem;
+        }
+
+        .page-title {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .posts-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .vulnerability-post-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+            .vulnerability-post-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+                border-color: #667eea;
+            }
+
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .vulnerability-summary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .post-description {
+            color: #495057;
+            margin: 1.5rem 0;
+            line-height: 1.6;
+        }
+
+        .vulnerability-stats {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .stat-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+            .stat-badge.critical {
+                background: rgba(220, 53, 69, 0.1);
+                color: #dc3545;
+            }
+
+            .stat-badge.high {
+                background: rgba(255, 193, 7, 0.1);
+                color: #ff9f1a;
+            }
+
+            .stat-badge.medium {
+                background: rgba(23, 162, 184, 0.1);
+                color: #17a2b8;
+            }
+
+            .stat-badge.low {
+                background: rgba(108, 117, 125, 0.1);
+                color: #6c757d;
+            }
+
+        .post-footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn-vote {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            color: #6c757d;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .btn-vote:hover {
+                background: #667eea;
+                border-color: #667eea;
+                color: white;
+                transform: translateY(-2px);
+            }
+
+            .btn-vote.voted {
+                background: #667eea;
+                border-color: #667eea;
+                color: white;
+            }
+
+        .vote-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-radius: 2rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            padding: 4rem 0;
+        }
+
+        .cta-section {
+            margin-top: 4rem;
+            padding-top: 4rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .cta-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            text-align: center;
+        }
+
+            .cta-card h4 {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+
+            .cta-card p {
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+                opacity: 0.9;
+            }
+
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-primary-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function toggleVote(postId) {
+            fetch(`/Vulnerabilities?handler=Vote`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ postId: postId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const card = document.querySelector(`[data-post-id="${postId}"]`);
+                    const voteBtn = card.querySelector('.btn-vote');
+                    const voteCount = card.querySelector('.vote-count');
+
+                    voteCount.textContent = data.upvoteCount;
+
+                    if (data.hasVoted) {
+                        voteBtn.classList.add('voted');
+                    } else {
+                        voteBtn.classList.remove('voted');
+                    }
+
+                    // Animație
+                    voteBtn.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        voteBtn.style.transform = 'scale(1)';
+                    }, 200);
+                } else {
+                    alert(data.message || 'A apărut o eroare.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+}

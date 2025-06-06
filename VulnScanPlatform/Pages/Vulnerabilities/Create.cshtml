@@ -1,0 +1,164 @@
+﻿@page
+@model VulnScanPlatform.Pages.Vulnerabilities.CreateModel
+@{
+    ViewData["Title"] = "Postează Scanare";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="page-header mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-page="/Vulnerabilities/Index">Vulnerabilități</a></li>
+                        <li class="breadcrumb-item active">Postează Scanare</li>
+                    </ol>
+                </nav>
+                <h1 class="page-title">
+                    <i class="fas fa-plus-circle text-primary me-3"></i>
+                    Postează Scanare Publică
+                </h1>
+                <p class="text-muted">Împărtășește rezultatele scanării cu comunitatea</p>
+            </div>
+
+            @if (!Model.UserScans.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Nu ai scanări disponibile pentru postare. Toate scanările tale au fost deja postate sau nu conțin vulnerabilități.
+                    <div class="mt-3">
+                        <a asp-page="/Scans/Index" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Creează o Scanare Nouă
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-modern">
+                    <div class="card-body p-4">
+                        <form method="post">
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                            <div class="mb-4">
+                                <label asp-for="Input.ScanId" class="form-label fw-medium">
+                                    <i class="fas fa-search me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.ScanId)
+                                </label>
+                                <select asp-for="Input.ScanId" class="form-select" required>
+                                    <option value="">-- Selectează o scanare --</option>
+                                    @foreach (var scan in Model.UserScans)
+                                    {
+                                        <option value="@scan.Id">
+                                            @scan.ApplicationName - @scan.FileName
+                                            (@scan.ScanDate.ToString("dd MMM yyyy")) -
+                                            @scan.VulnerabilityCount vulnerabilități
+                                            @if (scan.CriticalCount > 0)
+                                            {
+                                                <text>(@scan.CriticalCount critice)</text>
+                                            }
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Input.ScanId" class="text-danger"></span>
+                                <div class="form-text">
+                                    Selectează scanarea pe care vrei să o postezi public.
+                                </div>
+                            </div>
+
+                            <div class="selected-scan-preview d-none" id="scanPreview">
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">Detalii Scanare Selectată</h6>
+                                    <div id="scanDetails"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="Input.Title" class="form-label fw-medium">
+                                    <i class="fas fa-heading me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Title)
+                                </label>
+                                <input asp-for="Input.Title" class="form-control"
+                                       placeholder="Ex: Vulnerabilități critice în formular de login" />
+                                <span asp-validation-for="Input.Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="Input.Description" class="form-label fw-medium">
+                                    <i class="fas fa-align-left me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Input.Description)
+                                </label>
+                                <textarea asp-for="Input.Description" class="form-control" rows="4"
+                                          placeholder="Descrie contextul scanării și principalele descoperiri..."></textarea>
+                                <span asp-validation-for="Input.Description" class="text-danger"></span>
+                                <div class="form-text">
+                                    Oferă context despre aplicația scanată și vulnerabilitățile descoperite.
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    <input asp-for="Input.IncludeHtmlContent" class="form-check-input" />
+                                    <label asp-for="Input.IncludeHtmlContent" class="form-check-label">
+                                        @Html.DisplayNameFor(m => m.Input.IncludeHtmlContent)
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    Permite altor utilizatori să vadă codul HTML original scanat.
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Atenție!</strong> Asigură-te că nu distribui informații sensibile sau private.
+                                Postarea va fi vizibilă public pentru toți vizitatorii site-ului.
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-between">
+                                <a asp-page="/Vulnerabilities/Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Înapoi
+                                </a>
+                                <button type="submit" class="btn btn-primary-modern">
+                                    <i class="fas fa-paper-plane me-2"></i>Publică Postarea
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Preview scan details when selected
+        const scanData = @Html.Raw(Json.Serialize(Model.UserScans));
+
+        document.getElementById('Input_ScanId').addEventListener('change', function() {
+            const scanId = parseInt(this.value);
+            const preview = document.getElementById('scanPreview');
+            const details = document.getElementById('scanDetails');
+
+            if (scanId) {
+                const scan = scanData.find(s => s.id === scanId);
+                if (scan) {
+                    preview.classList.remove('d-none');
+                    details.innerHTML = `
+                        <p class="mb-1"><strong>Aplicație:</strong> ${scan.applicationName}</p>
+                        <p class="mb-1"><strong>Fișier:</strong> ${scan.fileName}</p>
+                        <p class="mb-1"><strong>Data scanării:</strong> ${new Date(scan.scanDate).toLocaleDateString('ro-RO')}</p>
+                        <p class="mb-0"><strong>Vulnerabilități:</strong>
+                            <span class="badge bg-danger">${scan.vulnerabilityCount} total</span>
+                            ${scan.criticalCount > 0 ? `<span class="badge bg-danger ms-1">${scan.criticalCount} critice</span>` : ''}
+                            ${scan.highCount > 0 ? `<span class="badge bg-warning ms-1">${scan.highCount} ridicate</span>` : ''}
+                        </p>
+                    `;
+                }
+            } else {
+                preview.classList.add('d-none');
+            }
+        });
+    </script>
+}
