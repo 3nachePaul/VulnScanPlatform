@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Pagină Securizată Parțial</title>
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+</head>
+<body>
+
+    <h1>Link-uri și Script-uri Externe</h1>
+
+    <p>
+        Verifică aceste resurse externe.
+    </p>
+
+    <a href="https://externalsite.com/info" target="_blank">Resursă Externă 1</a>
+    <br>
+    <a href="https://correct.com" target="_blank" rel="noopener noreferrer">Resursă Externă Corectă</a>
+    <br>
+    <a href="https://another-external-site.net" target="_blank">Resursă Externă 2</a>
+
+    <hr>
+
+    <h2>Scripturi</h2>
+    <script src="http://some-cdn.com/library.js"></script>
+
+</body>
+</html>

@@ -1,11 +1,12 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using VulnScanPlatform.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VulnScanPlatform.Pages.Reports
 {
@@ -29,6 +30,7 @@ namespace VulnScanPlatform.Pages.Reports
         public Report Report { get; set; }
         public List<ReportInvitation> Invitations { get; set; }
         public List<ChatMessage> ChatMessages { get; set; }
+        public ICollection<Vulnerability> Vulnerabilities { get; set; }
         public bool IsOwner { get; set; }
         public bool HasAccess { get; set; }
         public bool HasPendingInvitation { get; set; }
@@ -38,7 +40,7 @@ namespace VulnScanPlatform.Pages.Reports
         {
             CurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Load report with all related data
+            // Încarcă raportul cu toate datele aferente, inclusiv vulnerabilitățile
             Report = await _context.Reports
                 .Include(r => r.CreatedBy)
                 .Include(r => r.Invitations)
@@ -49,6 +51,8 @@ namespace VulnScanPlatform.Pages.Reports
                     .ThenInclude(m => m.User)
                 .Include(r => r.Scan)
                     .ThenInclude(s => s.Application)
+                .Include(r => r.Scan)
+                    .ThenInclude(s => s.Vulnerabilities) // Include vulnerabilitățile
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (Report == null)
@@ -56,23 +60,33 @@ namespace VulnScanPlatform.Pages.Reports
                 return NotFound();
             }
 
+            // Populează proprietatea Vulnerabilities
+            if (Report.Scan != null)
+            {
+                Vulnerabilities = Report.Scan.Vulnerabilities;
+            }
+            else
+            {
+                Vulnerabilities = new List<Vulnerability>();
+            }
+
             IsOwner = Report.CreatedByUserId == CurrentUserId;
 
-            // Check if user has access
+            // Verifică dacă utilizatorul are acces
             var hasInvitation = await _context.ReportInvitations
                 .AnyAsync(i => i.ReportId == id &&
-                              i.InvitedUserId == CurrentUserId &&
-                              i.IsAccepted);
+                               i.InvitedUserId == CurrentUserId &&
+                               i.IsAccepted);
 
             HasAccess = IsOwner || hasInvitation;
 
             if (!HasAccess)
             {
-                // Check for pending invitation
+                // Verifică dacă există o invitație în așteptare
                 HasPendingInvitation = await _context.ReportInvitations
                     .AnyAsync(i => i.ReportId == id &&
-                                  i.InvitedUserEmail == User.FindFirst(ClaimTypes.Email).Value &&
-                                  !i.IsAccepted);
+                                   i.InvitedUserEmail == User.FindFirst(ClaimTypes.Email).Value &&
+                                   !i.IsAccepted);
 
                 if (!HasPendingInvitation)
                 {
@@ -90,7 +104,6 @@ namespace VulnScanPlatform.Pages.Reports
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Verify user is owner
             var report = await _context.Reports
                 .FirstOrDefaultAsync(r => r.Id == id && r.CreatedByUserId == currentUserId);
 
@@ -105,7 +118,6 @@ namespace VulnScanPlatform.Pages.Reports
                 return RedirectToPage(new { id });
             }
 
-            // Check if user exists
             var invitedUser = await _userManager.FindByEmailAsync(email);
             if (invitedUser == null)
             {
@@ -113,7 +125,6 @@ namespace VulnScanPlatform.Pages.Reports
                 return RedirectToPage(new { id });
             }
 
-            // Check if already invited
             var existingInvitation = await _context.ReportInvitations
                 .AnyAsync(i => i.ReportId == id && i.InvitedUserEmail == email);
 
@@ -123,7 +134,6 @@ namespace VulnScanPlatform.Pages.Reports
                 return RedirectToPage(new { id });
             }
 
-            // Create invitation
             var invitation = new ReportInvitation
             {
                 ReportId = id,
@@ -152,7 +162,6 @@ namespace VulnScanPlatform.Pages.Reports
                 return RedirectToPage(new { id });
             }
 
-            // Verify user has access
             var hasAccess = await _context.Reports.AnyAsync(r => r.Id == id && r.CreatedByUserId == currentUserId)
                 || await _context.ReportInvitations.AnyAsync(i => i.ReportId == id && i.InvitedUserId == currentUserId && i.IsAccepted);
 
@@ -184,8 +193,8 @@ namespace VulnScanPlatform.Pages.Reports
 
             var invitation = await _context.ReportInvitations
                 .FirstOrDefaultAsync(i => i.ReportId == id &&
-                                         i.InvitedUserEmail == currentUserEmail &&
-                                         !i.IsAccepted);
+                                          i.InvitedUserEmail == currentUserEmail &&
+                                          !i.IsAccepted);
 
             if (invitation != null)
             {
@@ -205,7 +214,6 @@ namespace VulnScanPlatform.Pages.Reports
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Verify user is owner
             var report = await _context.Reports
                 .FirstOrDefaultAsync(r => r.Id == id && r.CreatedByUserId == currentUserId);
 
@@ -231,7 +239,6 @@ namespace VulnScanPlatform.Pages.Reports
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Verify user has access
             var hasAccess = await _context.Reports.AnyAsync(r => r.Id == id && r.CreatedByUserId == currentUserId)
                 || await _context.ReportInvitations.AnyAsync(i => i.ReportId == id && i.InvitedUserId == currentUserId && i.IsAccepted);
 
@@ -240,26 +247,24 @@ namespace VulnScanPlatform.Pages.Reports
                 return new JsonResult(new { messages = new List<object>() });
             }
 
-            // În Pages/Reports/Details.cshtml.cs, metoda OnGetNewMessagesAsync
-
             var newMessages = await _context.ChatMessages
             .Where(m => m.ReportId == id && m.Id > lastMessageId)
             .Include(m => m.User)
             .OrderBy(m => m.CreatedAt)
             .ToListAsync();
 
-                var result = newMessages.Select(m => new
-                {
-                    m.Id,
-                    m.UserId,
-                    m.Message,
-                    UserName = m.User.UserName,
-                    UserAvatar = m.User.FirstName.Substring(0, 1) + m.User.LastName.Substring(0, 1),
-                    RelativeTime = GetRelativeTime(m.CreatedAt)
-                });
+            var result = newMessages.Select(m => new
+            {
+                m.Id,
+                m.UserId,
+                m.Message,
+                UserName = m.User.UserName,
+                UserAvatar = m.User.FirstName.Substring(0, 1) + m.User.LastName.Substring(0, 1),
+                RelativeTime = GetRelativeTime(m.CreatedAt)
+            });
 
-                return new JsonResult(new { messages = result });
-            }
+            return new JsonResult(new { messages = result });
+        }
 
         public class RemoveCollaboratorRequest
         {
@@ -268,16 +273,16 @@ namespace VulnScanPlatform.Pages.Reports
 
         private string GetRelativeTime(DateTime dateTime)
         {
-            var timeSpan = DateTime.Now - dateTime;
+            var timeSpan = DateTime.UtcNow - dateTime;
 
             if (timeSpan.TotalMinutes < 1)
                 return "Chiar acum";
             if (timeSpan.TotalMinutes < 60)
-                return $"{(int)timeSpan.TotalMinutes}m";
+                return $"Acum {(int)timeSpan.TotalMinutes}m";
             if (timeSpan.TotalHours < 24)
-                return $"{(int)timeSpan.TotalHours}h";
+                return $"Acum {(int)timeSpan.TotalHours}h";
             if (timeSpan.TotalDays < 7)
-                return $"{(int)timeSpan.TotalDays}z";
+                return $"Acum {(int)timeSpan.TotalDays}z";
 
             return dateTime.ToString("dd MMM");
         }

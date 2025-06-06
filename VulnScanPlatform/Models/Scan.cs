@@ -34,6 +34,7 @@ namespace VulnScanPlatform.Models
         public User StartedBy { get; set; }
         public List<Vulnerability> Vulnerabilities { get; set; } = new();
         public Report Report { get; set; }
+        public DateTime? EndedAt { get; set; }
     }
 
     public enum ScanType

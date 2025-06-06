@@ -6,7 +6,6 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Report Content -->
         <div class="col-lg-8 mb-4">
             <div class="card-modern">
                 <div class="card-header bg-transparent border-0 p-4">
@@ -18,7 +17,7 @@
                                 <span>Creat de @Model.Report.CreatedBy.FullName</span>
                                 <span class="mx-2">•</span>
                                 <i class="fas fa-clock me-1"></i>
-                                <span>@Model.Report.CreatedAt.ToString("dd MMMM yyyy, HH:mm")</span>
+                                <span>@Model.Report.CreatedAt.ToString("dd MMMMstepDeploy, HH:mm")</span>
                             </div>
                         </div>
                         <div class="dropdown">
@@ -49,17 +48,70 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-4">
-                    <div class="report-content">
-                        @Html.Raw(Model.Report.Content)
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs nav-justified" id="reportTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="content-tab" data-bs-toggle="tab" data-bs-target="#content" type="button" role="tab" aria-controls="content" aria-selected="true">
+                                <i class="fas fa-file-alt me-2"></i>Raport Complet
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="vulnerabilities-tab" data-bs-toggle="tab" data-bs-target="#vulnerabilities" type="button" role="tab" aria-controls="vulnerabilities" aria-selected="false">
+                                <i class="fas fa-shield-alt me-2"></i>Vulnerabilități
+                                <span class="badge bg-danger ms-1">@Model.Vulnerabilities.Count</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="reportTabContent">
+                        <div class="tab-pane fade show active p-4" id="content" role="tabpanel" aria-labelledby="content-tab">
+                            <div class="report-content">
+                                @Html.Raw(Model.Report.Content)
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade p-4" id="vulnerabilities" role="tabpanel" aria-labelledby="vulnerabilities-tab">
+                            <h4 class="mb-3">Vulnerabilități Detectate</h4>
+                            @if (Model.Vulnerabilities != null && Model.Vulnerabilities.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped mt-3">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Titlu</th>
+                                                <th>Severitate</th>
+                                                <th>Descriere</th>
+                                                <th>Recomandare</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var vulnerability in Model.Vulnerabilities)
+                                            {
+                                                <tr>
+                                                    <td>@vulnerability.Title</td>
+                                                    <td>@vulnerability.Severity</td>
+                                                    <td>@vulnerability.Description</td>
+                                                    <td>@vulnerability.Recommendation</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success text-center mt-4">
+                                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                    <p class="mb-0">Nu au fost detectate vulnerabilități în urma acestei scanări.</p>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Share & Collaborators -->
             <div class="card-modern mb-4">
                 <div class="card-header bg-transparent border-0 p-4">
                     <h5 class="mb-0">
@@ -81,7 +133,6 @@
                         </form>
                     }
 
-                    <!-- Owner -->
                     <div class="collaborator-item mb-3">
                         <div class="d-flex align-items-center">
                             <div class="collaborator-avatar">
@@ -95,7 +146,6 @@
                         </div>
                     </div>
 
-                    <!-- Invited Users -->
                     @foreach (var invitation in Model.Invitations.Where(i => i.IsAccepted))
                     {
                         <div class="collaborator-item mb-3">
@@ -118,7 +168,6 @@
                         </div>
                     }
 
-                    <!-- Pending Invitations -->
                     @foreach (var invitation in Model.Invitations.Where(i => !i.IsAccepted))
                     {
                         <div class="collaborator-item mb-3 opacity-50">
@@ -137,7 +186,6 @@
                 </div>
             </div>
 
-            <!-- Chat -->
             <div class="card-modern">
                 <div class="card-header bg-transparent border-0 p-4">
                     <h5 class="mb-0">
@@ -148,7 +196,7 @@
                     <div class="chat-container" id="chatContainer">
                         @foreach (var message in Model.ChatMessages)
                         {
-                            <div class="chat-message @(message.UserId == Model.CurrentUserId ? "chat-message-own" : "")">
+                            <div class="chat-message @(message.UserId == Model.CurrentUserId ? "chat-message-own" : "")" data-message-id="@message.Id">
                                 <div class="chat-message-header">
                                     <strong>@message.User.FullName</strong>
                                     <small>@GetRelativeTime(message.CreatedAt)</small>
@@ -160,7 +208,8 @@
                         }
                     </div>
 
-                    <form method="post" asp-page-handler="SendMessage" class="chat-input-form">
+                    <form method="post" asp-page-handler="SendMessage" class="chat-input-form" onsubmit="return handleChatSubmit(this);">
+                        @Html.AntiForgeryToken()
                         <div class="input-group">
                             <input type="text" name="message" class="form-control"
                                    placeholder="Scrie un mesaj..." required autocomplete="off" />
@@ -175,7 +224,6 @@
     </div>
 </div>
 
-<!-- Pending Invitation Alert -->
 @if (Model.HasPendingInvitation)
 {
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
@@ -225,7 +273,7 @@
         .collaborator-avatar {
             width: 40px;
             height: 40px;
-            background: var(--primary-gradient);
+            background: #667eea;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -247,11 +295,14 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            max-width: 80%;
+            float: left;
+            clear: both;
         }
 
         .chat-message-own {
             background: rgba(102, 126, 234, 0.1);
-            margin-left: 2rem;
+            float: right;
         }
 
         .chat-message-header {
@@ -267,6 +318,7 @@
 
         .chat-message-content {
             color: #495057;
+            word-wrap: break-word;
         }
 
         .chat-input-form {
@@ -283,38 +335,60 @@
         const chatContainer = document.getElementById('chatContainer');
         chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Real-time chat updates (would use SignalR in production)
-        setInterval(function() {
-            // Check for new messages
+        function getLastMessageId() {
+            const messages = document.querySelectorAll('.chat-message');
+            if (messages.length === 0) return 0;
+            const lastMessage = messages[messages.length - 1];
+            return parseInt(lastMessage.dataset.messageId, 10) || 0;
+        }
+
+        function appendNewMessages(messages) {
+            let shouldScroll = chatContainer.scrollTop + chatContainer.clientHeight === chatContainer.scrollHeight;
+
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${msg.userId === '@Model.CurrentUserId' ? 'chat-message-own' : ''}`;
+                messageDiv.dataset.messageId = msg.id;
+                messageDiv.innerHTML = `
+                    <div class="chat-message-header">
+                        <strong>${escapeHtml(msg.userName)}</strong>
+                        <small>${msg.relativeTime}</small>
+                    </div>
+                    <div class="chat-message-content">${escapeHtml(msg.message)}</div>
+                `;
+                chatContainer.appendChild(messageDiv);
+            });
+
+            if(shouldScroll) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // Polling for new messages
+        const pollInterval = setInterval(function() {
             fetch(`/Reports/Details/@Model.Report.Id?handler=NewMessages&lastMessageId=${getLastMessageId()}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.messages && data.messages.length > 0) {
                         appendNewMessages(data.messages);
                     }
-                });
+                })
+                .catch(error => console.error('Error fetching new messages:', error));
         }, 3000);
 
-        function getLastMessageId() {
-            const messages = document.querySelectorAll('.chat-message');
-            return messages.length > 0 ? messages[messages.length - 1].dataset.messageId || 0 : 0;
-        }
-
-        function appendNewMessages(messages) {
-            messages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `chat-message ${msg.isOwn ? 'chat-message-own' : ''}`;
-                messageDiv.innerHTML = `
-                    <div class="chat-message-header">
-                        <strong>${msg.userName}</strong>
-                        <small>${msg.time}</small>
-                    </div>
-                    <div class="chat-message-content">${msg.message}</div>
-                `;
-                chatContainer.appendChild(messageDiv);
-            });
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+        // Cleanup interval on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(pollInterval);
+        });
 
         function removeCollaborator(invitationId) {
             if (confirm('Ești sigur că vrei să elimini acest colaborator?')) {
@@ -322,15 +396,19 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     },
                     body: JSON.stringify({ invitationId: invitationId })
                 })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                         location.reload();
+                    } else {
+                        alert(data.message || 'A apărut o eroare.');
                     }
-                });
+                })
+                .catch(error => console.error('Error removing collaborator:', error));
             }
         }
 
@@ -340,7 +418,9 @@
 
         function deleteReport() {
             if (confirm('Ești sigur că vrei să ștergi acest raport? Acțiunea nu poate fi anulată.')) {
-                // Submit delete form
+                // In a real app, you would submit a form POST to a Delete handler
+                // For now, it just shows an alert.
+                alert('Funcționalitate în dezvoltare - Ștergere Raport.');
             }
         }
     </script>
@@ -349,16 +429,16 @@
 @functions {
     private string GetRelativeTime(DateTime dateTime)
     {
-        var timeSpan = DateTime.Now - dateTime;
+        var timeSpan = DateTime.UtcNow - dateTime;
 
         if (timeSpan.TotalMinutes < 1)
             return "Chiar acum";
         if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes}m";
+            return $"Acum {(int)timeSpan.TotalMinutes}m";
         if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours}h";
+            return $"Acum {(int)timeSpan.TotalHours}h";
         if (timeSpan.TotalDays < 7)
-            return $"{(int)timeSpan.TotalDays}z";
+            return $"Acum {(int)timeSpan.TotalDays}z";
 
         return dateTime.ToString("dd MMM");
     }

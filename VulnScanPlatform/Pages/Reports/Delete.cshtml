@@ -1,0 +1,48 @@
+﻿@page
+@model VulnScanPlatform.Pages.Reports.DeleteModel
+
+@{
+    ViewData["Title"] = "Ștergere Raport";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">Ștergere Raport</h1>
+        </div>
+        <div class="card-body">
+            <h3>Sunteți sigur că doriți să ștergeți acest raport?</h3>
+            <div>
+                <h4>Detalii Raport</h4>
+                <hr />
+                <dl class="row">
+                    <dt class="col-sm-3">
+                        ID Raport
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Report.Id)
+                    </dd>
+                    <dt class="col-sm-3">
+                        Numele Aplicației
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Report.Scan.Application.Name)
+                    </dd>
+                    <dt class="col-sm-3">
+                        Data Generării
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Report.CreatedAt)
+                    </dd>
+                </dl>
+
+                <form method="post">
+                    <input type="hidden" asp-for="Report.Id" />
+                    <input type="submit" value="Șterge" class="btn btn-danger" /> |
+                    <a asp-page="./Index" class="btn btn-secondary">Înapoi la Listă</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

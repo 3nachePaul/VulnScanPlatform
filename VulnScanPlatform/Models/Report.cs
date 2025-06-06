@@ -10,6 +10,7 @@
         public User CreatedBy { get; set; }
         public List<ReportInvitation> Invitations { get; set; } = new();
         public List<ChatMessage> ChatMessages { get; set; } = new();
+
     }
 
     public class ReportInvitation

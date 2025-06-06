@@ -1,0 +1,88 @@
+﻿@page "{id:int}"
+@model VulnScanPlatform.Pages.Scans.DetailsModel
+@using VulnScanPlatform.Models
+@{
+    ViewData["Title"] = "Detalii Scanare";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">Detalii Scanare #@Model.Scan.Id</h1>
+        </div>
+        <div class="card-body">
+            <h4>Informații Scanare</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3">Nume Aplicație</dt>
+                <dd class="col-sm-9">@Model.Scan.Application.Name</dd>
+
+                <dt class="col-sm-3">Tip Scanare</dt>
+                <dd class="col-sm-9">@Model.Scan.Type</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Scan.Status == ScanStatus.Completed)
+                    {
+                        <span class="badge bg-success">Complet</span>
+                    }
+                    else if (Model.Scan.Status == ScanStatus.InProgress)
+                    {
+                        <span class="badge bg-warning text-dark">În Desfășurare</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Eșuată</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">Data Începerii</dt>
+                <dd class="col-sm-9">@Model.Scan.StartedAt.ToString("g")</dd>
+
+                <dt class="col-sm-3">Data Finalizării</dt>
+                <dd class="col-sm-9">@Model.Scan.CompletedAt?.ToString("g")</dd>
+            </dl>
+
+            <h4 class="mt-4">Vulnerabilități Detectate</h4>
+            @if (Model.Scan.Vulnerabilities != null && Model.Scan.Vulnerabilities.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mt-3">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Descriere</th>
+                                <th>Severitate</th>
+                                <th>URL Vulnerabil</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var vulnerability in Model.Scan.Vulnerabilities)
+                            {
+                                <tr>
+                                    <td>@vulnerability.Description</td>
+                                    <td>@vulnerability.Severity</td>
+                                    <td>@vulnerability.Title</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="mt-3">Nu au fost detectate vulnerabilități pentru această scanare.</p>
+            }
+
+            <div class="mt-4">
+                <a asp-page="./Index" class="btn btn-secondary">Înapoi la Listă</a>
+                @if (!string.IsNullOrEmpty(Model.Scan.FilePath))
+                {
+                    <a href="@Url.Content("~/" + Model.Scan.FilePath.Replace("wwwroot\\", "").Replace("\\", "/"))" class="btn btn-info" target="_blank">
+                        Vezi Raportul Complet
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
