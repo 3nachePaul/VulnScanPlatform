@@ -1,165 +1,413 @@
 ﻿@page
-@model VulnScanPlatform.Pages.Notifications.IndexModel
+@model VulnScanPlatform.Pages.Scans.IndexModel
 @{
-    ViewData["Title"] = "Invitații";
+    ViewData["Title"] = "Scanări de Securitate";
 }
 
-<div class="container">
-    <div class="page-header mb-4">
-        <h1 class="page-title">
-            <i class="fas fa-bell text-primary me-3"></i>
-            Invitații și Notificări
-        </h1>
-        <p class="text-muted">Gestionează invitațiile primite pentru rapoarte partajate</p>
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-shield-alt text-primary me-3"></i>
+                Scanări de Securitate
+            </h1>
+            <p class="text-muted">Încarcă fișiere HTML pentru analiza vulnerabilităților</p>
+        </div>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <!-- Pending Invitations -->
-            @if (Model.PendingInvitations.Any())
-            {
-                <div class="card-modern mb-4">
-                    <div class="card-header bg-transparent border-0 p-4">
-                        <h5 class="mb-0">
-                            <i class="fas fa-envelope me-2"></i>Invitații Noi
-                            <span class="badge bg-primary ms-2">@Model.PendingInvitations.Count</span>
-                        </h5>
+<!-- Upload Section -->
+<div class="row mb-5">
+    <div class="col-lg-8 mx-auto">
+        <div class="card-modern">
+            <div class="card-body p-5">
+                <h3 class="mb-4">
+                    <i class="fas fa-upload me-2"></i>Scanare Nouă
+                </h3>
+
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Nume Scanare (opțional)</label>
+                        <input type="text" class="form-control" name="scanName"
+                               placeholder="Ex: Test Homepage v2.0" />
                     </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
-                            @foreach (var invitation in Model.PendingInvitations)
-                            {
-                                <div class="list-group-item p-4">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">
-                                                <i class="fas fa-file-alt text-primary me-2"></i>
-                                                @invitation.Report.Title
-                                            </h6>
-                                            <p class="mb-2 text-muted">
-                                                <strong>@invitation.InvitedBy.FullName</strong> te-a invitat să vezi acest raport
-                                            </p>
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock me-1"></i>
-                                                @GetRelativeTime(invitation.CreatedAt)
-                                            </small>
-                                        </div>
-                                        <div class="ms-3">
-                                            <form method="post" asp-page-handler="AcceptInvitation" class="d-inline">
-                                                <input type="hidden" name="invitationId" value="@invitation.Id" />
-                                                <button type="submit" class="btn btn-success btn-sm me-2">
-                                                    <i class="fas fa-check me-1"></i>Acceptă
-                                                </button>
-                                            </form>
-                                            <form method="post" asp-page-handler="DeclineInvitation" class="d-inline">
-                                                <input type="hidden" name="invitationId" value="@invitation.Id" />
-                                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                    <i class="fas fa-times me-1"></i>Refuză
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">
+                            <i class="fas fa-file-code me-2"></i>Fișier HTML pentru Scanare
+                        </label>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" class="form-control d-none" id="htmlFile" name="htmlFile"
+                                   accept=".html,.htm" required />
+                            <div class="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
+                                <h5>Trage fișierul aici sau click pentru a selecta</h5>
+                                <p class="text-muted mb-0">Acceptăm fișiere HTML și HTM până la 10MB</p>
+                            </div>
+                            <div class="upload-preview d-none">
+                                <i class="fas fa-file-code fa-4x text-success mb-3"></i>
+                                <h5 class="file-name"></h5>
+                                <p class="file-size text-muted mb-3"></p>
+                                <button type="button" class="btn btn-outline-danger" onclick="clearFile()">
+                                    <i class="fas fa-times me-2"></i>Elimină Fișier
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-            else
-            {
-                <div class="card-modern mb-4">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">Nu ai invitații noi</h5>
-                        <p class="text-muted">Când cineva te invită să vezi un raport, va apărea aici</p>
-                    </div>
-                </div>
-            }
 
-            <!-- Accepted Invitations -->
-            @if (Model.AcceptedInvitations.Any())
-            {
-                <div class="card-modern">
-                    <div class="card-header bg-transparent border-0 p-4">
-                        <h5 class="mb-0">
-                            <i class="fas fa-folder-open me-2"></i>Rapoarte Partajate cu Mine
-                        </h5>
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Tip Scanare</label>
+                        <select class="form-select" name="scanType" required>
+                            <option value="Quick">Scanare Rapidă (verificări de bază)</option>
+                            <option value="Full" selected>Scanare Completă (toate verificările)</option>
+                            <option value="Custom">Scanare Personalizată</option>
+                        </select>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
-                            @foreach (var invitation in Model.AcceptedInvitations)
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary-modern btn-lg" id="startScanBtn">
+                            <i class="fas fa-play me-2"></i>Începe Scanarea
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Section -->
+@if (Model.UserReports.Any() || Model.SharedReports.Any())
+{
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="fas fa-file-alt me-2"></i>Rapoartele Mele
+            </h3>
+        </div>
+    </div>
+
+    <!-- My Reports -->
+    @if (Model.UserReports.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5 class="text-muted mb-3">Rapoarte Create de Mine</h5>
+            </div>
+            @foreach (var report in Model.UserReports)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card-modern report-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="report-icon">
+                                    <i class="fas fa-file-shield"></i>
+                                </div>
+                                <span class="badge bg-primary">Proprietar</span>
+                            </div>
+
+                            <h5 class="report-title">@report.Title</h5>
+
+                            @if (report.Scan != null)
                             {
-                                <a href="/Reports/Details/@invitation.ReportId" class="list-group-item list-group-item-action p-4">
-                                    <div class="d-flex align-items-center">
-                                        <div class="report-icon me-3">
-                                            <i class="fas fa-file-alt"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">@invitation.Report.Title</h6>
-                                            <p class="mb-1 text-muted small">
-                                                Partajat de <strong>@invitation.InvitedBy.FullName</strong>
-                                            </p>
-                                            <div class="d-flex align-items-center text-muted small">
-                                                <i class="fas fa-clock me-1"></i>
-                                                <span>Acceptat @GetRelativeTime(invitation.AcceptedAt.Value)</span>
-                                                @if (invitation.Report.ChatMessages?.Count > 0)
-                                                {
-                                                    <span class="mx-2">•</span>
-                                                    <i class="fas fa-comments me-1"></i>
-                                                    <span>@invitation.Report.ChatMessages.Count mesaje</span>
-                                                }
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <i class="fas fa-chevron-right text-muted"></i>
-                                        </div>
-                                    </div>
-                                </a>
+                                <p class="text-muted small mb-2">
+                                    <i class="fas fa-file me-1"></i>@report.Scan.FileName
+                                </p>
+                                <p class="text-muted small mb-3">
+                                    <i class="fas fa-folder me-1"></i>@report.Scan.Application?.Name
+                                </p>
                             }
+
+                            <div class="report-stats mb-3">
+                                <span class="stat-badge stat-critical">
+                                    <i class="fas fa-exclamation-circle"></i> @report.CriticalCount
+                                </span>
+                                <span class="stat-badge stat-high">
+                                    <i class="fas fa-exclamation-triangle"></i> @report.HighCount
+                                </span>
+                                <span class="stat-badge stat-medium">
+                                    <i class="fas fa-info-circle"></i> @report.MediumCount
+                                </span>
+                                <span class="stat-badge stat-low">
+                                    <i class="fas fa-info"></i> @report.LowCount
+                                </span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    @report.CreatedAt.ToString("dd MMM yyyy, HH:mm")
+                                </small>
+                                <a href="/Reports/Details/@report.Id" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye me-1"></i>Vezi
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             }
         </div>
-    </div>
-</div>
+    }
+
+    <!-- Shared Reports -->
+    @if (Model.SharedReports.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <h5 class="text-muted mb-3">Rapoarte Partajate cu Mine</h5>
+            </div>
+            @foreach (var report in Model.SharedReports)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card-modern report-card shared">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="report-icon shared">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <span class="badge bg-info">Partajat</span>
+                            </div>
+
+                            <h5 class="report-title">@report.Title</h5>
+
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-user me-1"></i>Creat de: @report.CreatedBy.FullName
+                            </p>
+
+                            @if (report.Scan != null)
+                            {
+                                <p class="text-muted small mb-3">
+                                    <i class="fas fa-file me-1"></i>@report.Scan.FileName
+                                </p>
+                            }
+
+                            <div class="report-stats mb-3">
+                                <span class="stat-badge stat-critical">
+                                    <i class="fas fa-exclamation-circle"></i> @report.CriticalCount
+                                </span>
+                                <span class="stat-badge stat-high">
+                                    <i class="fas fa-exclamation-triangle"></i> @report.HighCount
+                                </span>
+                                <span class="stat-badge stat-medium">
+                                    <i class="fas fa-info-circle"></i> @report.MediumCount
+                                </span>
+                                <span class="stat-badge stat-low">
+                                    <i class="fas fa-info"></i> @report.LowCount
+                                </span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    @report.CreatedAt.ToString("dd MMM yyyy, HH:mm")
+                                </small>
+                                <a href="/Reports/Details/@report.Id" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye me-1"></i>Vezi
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
 
 @section Styles {
     <style>
+        .upload-area {
+            border: 3px dashed #dee2e6;
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+            .upload-area:hover {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.05);
+                transform: translateY(-2px);
+            }
+
+            .upload-area.drag-over {
+                border-color: #667eea;
+                background: rgba(102, 126, 234, 0.1);
+                transform: scale(1.02);
+            }
+
+        .report-card {
+            height: 100%;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+            .report-card:hover {
+                transform: translateY(-5px);
+                border-color: #667eea;
+            }
+
+            .report-card.shared {
+                background: rgba(23, 162, 184, 0.05);
+            }
+
         .report-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(102, 126, 234, 0.1);
             color: #667eea;
-            font-size: 1.25rem;
         }
 
-        .list-group-item-action:hover .report-icon {
-            background: rgba(102, 126, 234, 0.2);
+            .report-icon.shared {
+                background: rgba(23, 162, 184, 0.1);
+                color: #17a2b8;
+            }
+
+        .report-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .report-stats {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            gap: 0.25rem;
+        }
+
+        .stat-critical {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .stat-high {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .stat-medium {
+            background: rgba(23, 162, 184, 0.1);
+            color: #17a2b8;
+        }
+
+        .stat-low {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-primary-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            }
+
+        .upload-preview {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+            opacity: 0;
+            transform: scale(0.95);
+            }
+            to {
+            opacity: 1;
+            transform: scale(1);
+            }
+
         }
     </style>
 }
 
-@functions {
-    private string GetRelativeTime(DateTime dateTime)
-    {
-        var timeSpan = DateTime.Now - dateTime;
+@section Scripts {
+    <script>
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('htmlFile');
+        const uploadPlaceholder = uploadArea.querySelector('.upload-placeholder');
+        const uploadPreview = uploadArea.querySelector('.upload-preview');
 
-        if (timeSpan.TotalMinutes < 1)
-            return "Chiar acum";
-        if (timeSpan.TotalMinutes < 60)
-            return $"Acum {(int)timeSpan.TotalMinutes} minute";
-        if (timeSpan.TotalHours < 24)
-            return $"Acum {(int)timeSpan.TotalHours} ore";
-        if (timeSpan.TotalDays < 7)
-            return $"Acum {(int)timeSpan.TotalDays} zile";
-        if (timeSpan.TotalDays < 30)
-            return $"Acum {(int)(timeSpan.TotalDays / 7)} săptămâni";
+        uploadArea.addEventListener('click', () => fileInput.click());
 
-        return dateTime.ToString("dd MMM yyyy");
-    }
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && (files[0].type.includes('html') || files[0].name.endsWith('.html') || files[0].name.endsWith('.htm'))) {
+                fileInput.files = files;
+                showFilePreview(files[0]);
+            } else {
+                alert('Vă rugăm să încărcați un fișier HTML valid.');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                showFilePreview(e.target.files[0]);
+            }
+        });
+
+        function showFilePreview(file) {
+            uploadPlaceholder.classList.add('d-none');
+            uploadPreview.classList.remove('d-none');
+            uploadPreview.querySelector('.file-name').textContent = file.name;
+            uploadPreview.querySelector('.file-size').textContent = formatFileSize(file.size);
+        }
+
+        function clearFile() {
+            fileInput.value = '';
+            uploadPlaceholder.classList.remove('d-none');
+            uploadPreview.classList.add('d-none');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const btn = document.getElementById('startScanBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Se procesează...';
+        });
+    </script>
 }

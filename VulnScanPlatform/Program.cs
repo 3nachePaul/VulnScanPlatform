@@ -58,6 +58,7 @@ builder.Services.AddSession(options =>
 // Add custom services
 builder.Services.AddScoped<IJwtService, JwtService>(); // Keep this for future API endpoints
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IScanService, ScanService>();
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>

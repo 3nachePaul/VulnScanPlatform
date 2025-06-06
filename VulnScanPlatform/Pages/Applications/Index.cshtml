@@ -110,17 +110,17 @@
                         <div class="app-stats">
                             <div class="stat-item">
                                 <i class="fas fa-search me-1"></i>
-                                <span>@app.ScanCount scanări</span>
+                                <span>@(app.ScanCount) scanări</span>
                             </div>
                             <div class="stat-item">
                                 <i class="fas fa-bug me-1"></i>
-                                <span>@app.VulnerabilityCount vulnerabilități</span>
+                                <span>@(app.VulnerabilityCount) vulnerabilități</span>
                             </div>
                             @if (app.CollaboratorCount > 0)
                             {
                                 <div class="stat-item">
                                     <i class="fas fa-users me-1"></i>
-                                    <span>@app.CollaboratorCount colaboratori</span>
+                                    <span>@(app.CollaboratorCount) colaboratori</span>
                                 </div>
                             }
                         </div>
@@ -462,8 +462,8 @@
         }
 
         function validateEmail(email) {
-            const regex = new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
-            return regex.test(email);
+        const regex = new RegExp('^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$');
+        return regex.test(email);
         }
 
         // Scan modal
