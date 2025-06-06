@@ -240,22 +240,26 @@ namespace VulnScanPlatform.Pages.Reports
                 return new JsonResult(new { messages = new List<object>() });
             }
 
-            var messages = await _context.ChatMessages
-                .Include(m => m.User)
-                .Where(m => m.ReportId == id && m.Id > lastMessageId)
-                .OrderBy(m => m.CreatedAt)
-                .Select(m => new
-                {
-                    id = m.Id,
-                    userName = m.User.FullName,
-                    message = m.Message,
-                    time = GetRelativeTime(m.CreatedAt),
-                    isOwn = m.UserId == currentUserId
-                })
-                .ToListAsync();
+            // În Pages/Reports/Details.cshtml.cs, metoda OnGetNewMessagesAsync
 
-            return new JsonResult(new { messages });
-        }
+            var newMessages = await _context.ChatMessages
+            .Where(m => m.ReportId == id && m.Id > lastMessageId)
+            .Include(m => m.User)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync();
+
+                var result = newMessages.Select(m => new
+                {
+                    m.Id,
+                    m.UserId,
+                    m.Message,
+                    UserName = m.User.UserName,
+                    UserAvatar = m.User.FirstName.Substring(0, 1) + m.User.LastName.Substring(0, 1),
+                    RelativeTime = GetRelativeTime(m.CreatedAt)
+                });
+
+                return new JsonResult(new { messages = result });
+            }
 
         public class RemoveCollaboratorRequest
         {

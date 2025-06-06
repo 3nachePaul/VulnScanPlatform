@@ -72,12 +72,9 @@ namespace VulnScanPlatform.Models
                 entity.HasOne(s => s.StartedBy)
                     .WithMany()
                     .HasForeignKey(s => s.StartedByUserId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
 
-                entity.HasOne(s => s.Report)
-                    .WithOne(r => r.Scan)
-                    .HasForeignKey<Report>(r => r.ScanId)
-                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasIndex(s => s.Status);
             });
@@ -103,6 +100,12 @@ namespace VulnScanPlatform.Models
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasIndex(r => r.CreatedByUserId);
+
+                entity.HasOne(r => r.Scan)
+                    .WithOne(s => s.Report)
+                    .HasForeignKey<Report>(r => r.ScanId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ReportInvitation configuration

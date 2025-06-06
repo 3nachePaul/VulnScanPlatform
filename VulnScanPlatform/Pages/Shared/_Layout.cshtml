@@ -71,6 +71,13 @@
                                     <i class="fas fa-file-alt me-2"></i>Rapoarte
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Notifications") == true ? "active" : "") d-flex align-items-center"
+                                   asp-area="" asp-page="/Notifications/Index">
+                                    Notificări
+                                    @await Component.InvokeAsync("NotificationBadge")
+                                </a>
+                            </li>
 
                             @if (User.HasClaim("Role", "Administrator"))
                             {
@@ -287,8 +294,10 @@
     </footer>
 
     <!-- Scripts -->
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

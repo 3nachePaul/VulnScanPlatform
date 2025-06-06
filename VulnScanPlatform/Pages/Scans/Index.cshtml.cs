@@ -154,6 +154,7 @@ namespace VulnScanPlatform.Pages.Scans
                     ApplicationId = application.Id,
                     Type = scanType,
                     Status = ScanStatus.Pending,
+                    Configuration = "Default",
                     StartedByUserId = userId,
                     FileName = htmlFile.FileName,
                     FilePath = filePath,

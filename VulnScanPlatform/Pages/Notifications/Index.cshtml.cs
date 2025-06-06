@@ -36,46 +36,7 @@ namespace VulnScanPlatform.Pages.Notifications
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var currentUser = await _userManager.GetUserAsync(User);
 
-            // Mock data for demonstration
-            PendingInvitations = new List<ReportInvitation>
-            {
-                new ReportInvitation
-                {
-                    Id = 1,
-                    ReportId = 1,
-                    InvitedUserEmail = currentUserEmail,
-                    IsAccepted = false,
-                    CreatedAt = DateTime.Now.AddHours(-1),
-                    Report = new Report
-                    {
-                        Id = 1,
-                        Title = "Raport Analiză Homepage - Versiunea 2.0"
-                    },
-                    InvitedBy = new User
-                    {
-                        FirstName = "Maria",
-                        LastName = "Ionescu"
-                    }
-                },
-                new ReportInvitation
-                {
-                    Id = 2,
-                    ReportId = 2,
-                    InvitedUserEmail = currentUserEmail,
-                    IsAccepted = false,
-                    CreatedAt = DateTime.Now.AddDays(-1),
-                    Report = new Report
-                    {
-                        Id = 2,
-                        Title = "Analiza Performanță Site E-commerce"
-                    },
-                    InvitedBy = new User
-                    {
-                        FirstName = "Alexandru",
-                        LastName = "Popescu"
-                    }
-                }
-            };
+            
 
             AcceptedInvitations = new List<ReportInvitation>
             {
@@ -121,7 +82,7 @@ namespace VulnScanPlatform.Pages.Notifications
             };
 
             // In real implementation:
-            /*
+            
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -141,7 +102,7 @@ namespace VulnScanPlatform.Pages.Notifications
                 .Where(i => i.InvitedUserId == userId && i.IsAccepted)
                 .OrderByDescending(i => i.AcceptedAt)
                 .ToListAsync();
-            */
+            
         }
 
         public async Task<IActionResult> OnPostAcceptInvitationAsync(int invitationId)
@@ -150,7 +111,7 @@ namespace VulnScanPlatform.Pages.Notifications
             var currentUserEmail = User.FindFirstValue(ClaimTypes.Email);
 
             // In real implementation:
-            /*
+            
             var invitation = await _context.ReportInvitations
                 .FirstOrDefaultAsync(i => i.Id == invitationId && 
                                          i.InvitedUserEmail == currentUserEmail && 
@@ -167,7 +128,7 @@ namespace VulnScanPlatform.Pages.Notifications
             invitation.InvitedUserId = currentUserId;
 
             await _context.SaveChangesAsync();
-            */
+            
 
             _logger.LogInformation("User {UserId} accepted invitation {InvitationId}",
                 currentUserId, invitationId);
@@ -181,7 +142,7 @@ namespace VulnScanPlatform.Pages.Notifications
             var currentUserEmail = User.FindFirstValue(ClaimTypes.Email);
 
             // In real implementation:
-            /*
+            
             var invitation = await _context.ReportInvitations
                 .FirstOrDefaultAsync(i => i.Id == invitationId && 
                                          i.InvitedUserEmail == currentUserEmail && 
@@ -195,7 +156,7 @@ namespace VulnScanPlatform.Pages.Notifications
 
             _context.ReportInvitations.Remove(invitation);
             await _context.SaveChangesAsync();
-            */
+            
 
             _logger.LogInformation("User {Email} declined invitation {InvitationId}",
                 currentUserEmail, invitationId);

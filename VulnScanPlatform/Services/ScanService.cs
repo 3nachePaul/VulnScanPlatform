@@ -1,323 +1,169 @@
-﻿// Services/ScanService.cs
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
+using HtmlAgilityPack;
+using VulnScanPlatform.Hubs;
 using VulnScanPlatform.Models;
 
 namespace VulnScanPlatform.Services
 {
     public class ScanService : IScanService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ScanService> _logger;
+        private readonly IHubContext<ScanHub> _hubContext;
 
-        public ScanService(ApplicationDbContext context, ILogger<ScanService> logger)
+        public ScanService(IServiceScopeFactory scopeFactory, ILogger<ScanService> logger, IHubContext<ScanHub> hubContext)
         {
-            _context = context;
+            _scopeFactory = scopeFactory;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         public async Task ProcessScanAsync(int scanId)
         {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var scan = await context.Scans.Include(s => s.Report).FirstOrDefaultAsync(s => s.Id == scanId);
+            if (scan == null || scan.Report == null)
+            {
+                _logger.LogError("Scan or associated report not found for ScanId: {ScanId}", scanId);
+                return;
+            }
+
+            var groupName = $"Report-{scan.Report.Id}";
+            var vulnerabilitiesFound = new List<Vulnerability>();
+
             try
             {
-                var scan = await _context.Scans
-                    .Include(s => s.Application)
-                    .Include(s => s.Report)
-                    .FirstOrDefaultAsync(s => s.Id == scanId);
-
-                if (scan == null)
-                {
-                    _logger.LogError("Scan {ScanId} not found", scanId);
-                    return;
-                }
-
-                // Update scan status
                 scan.Status = ScanStatus.InProgress;
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Scanarea a început: Se încarcă fișierul HTML...");
 
-                _logger.LogInformation("Starting scan {ScanId} for application {AppName}",
-                    scanId, scan.Application.Name);
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(scan.FileContent);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Progres: Fișierul a fost încărcat și parsat.");
 
-                // Analyze HTML content
-                var vulnerabilities = await AnalyzeHtmlContent(scan.FileContent);
+                // Rulează verificările
+                await CheckSecurityHeaders(htmlDoc, scan, groupName, vulnerabilitiesFound);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Progres: S-au verificat antetele de securitate.");
 
-                // Save vulnerabilities
-                foreach (var vuln in vulnerabilities)
-                {
-                    vuln.ScanId = scanId;
-                    _context.Vulnerabilities.Add(vuln);
-                }
+                await CheckInsecureForms(htmlDoc, scan, groupName, vulnerabilitiesFound);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Progres: S-au verificat formularele.");
 
-                // Update scan status
+                await CheckInsecurePasswordInputs(htmlDoc, scan, groupName, vulnerabilitiesFound);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Progres: S-au verificat câmpurile de parolă.");
+
+                await CheckExternalLinks(htmlDoc, scan, groupName, vulnerabilitiesFound);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Progres: S-au verificat link-urile externe.");
+
+                await CheckInsecureScripts(htmlDoc, scan, groupName, vulnerabilitiesFound);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "InProgress", "Progres: S-au verificat script-urile.");
+
+                // Finalizează scanarea
                 scan.Status = ScanStatus.Completed;
                 scan.CompletedAt = DateTime.UtcNow;
+                scan.Report.Content = $"Analiza s-a finalizat. Au fost identificate {vulnerabilitiesFound.Count} vulnerabilități.";
+                context.Vulnerabilities.AddRange(vulnerabilitiesFound);
+                await context.SaveChangesAsync();
 
-                // Update report with results
-                if (scan.Report != null)
-                {
-                    scan.Report.Content = GenerateReportContent(scan, vulnerabilities);
-                }
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Scan {ScanId} completed with {VulnCount} vulnerabilities",
-                    scanId, vulnerabilities.Count);
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "Completed", scan.Report.Content);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing scan {ScanId}", scanId);
+                scan.Status = ScanStatus.Failed;
+                await context.SaveChangesAsync();
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveStatusUpdate", "Failed", "Scanarea a eșuat. Verificați log-urile.");
+            }
+        }
 
-                var scan = await _context.Scans.FindAsync(scanId);
-                if (scan != null)
+        private async Task CheckSecurityHeaders(HtmlDocument doc, Scan scan, string groupName, List<Vulnerability> found)
+        {
+            var headers = new Dictionary<string, (Severity, string, string)>
+            {
+                { "Content-Security-Policy", (Severity.High, "Protejează împotriva atacurilor XSS și a altor injecții de cod.", "Implementați un antet CSP strict care definește sursele de încredere pentru conținut.") },
+                { "X-Content-Type-Options", (Severity.Low, "Previne atacurile de tip MIME-sniffing.", "Adăugați antetul 'X-Content-Type-Options: nosniff'.") },
+                { "X-Frame-Options", (Severity.Medium, "Protejează împotriva atacurilor de tip clickjacking.", "Adăugați antetul 'X-Frame-Options: DENY' sau 'SAMEORIGIN'.") },
+                { "Strict-Transport-Security", (Severity.Medium, "Forțează browserul să comunice doar prin HTTPS.", "Adăugați antetul 'Strict-Transport-Security' cu o durată corespunzătoare.") }
+            };
+
+            foreach (var header in headers)
+            {
+                if (doc.DocumentNode.SelectSingleNode($"//meta[@http-equiv='{header.Key}']") == null)
                 {
-                    scan.Status = ScanStatus.Failed;
-                    await _context.SaveChangesAsync();
+                    var vulnerability = new Vulnerability { Title = $"Antetul de securitate '{header.Key}' lipsește", Description = $"Antetul HTTP '{header.Key}' nu este prezent, ceea ce poate expune aplicația la riscuri.", Impact = header.Value.Item2, Recommendation = header.Value.Item3, Severity = header.Value.Item1, ScanId = scan.Id, Status = VulnerabilityStatus.Open, Type = VulnerabilityType.SecurityMisconfiguration };
+                    found.Add(vulnerability);
+                    await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNewVulnerability", vulnerability);
                 }
             }
         }
 
-        private async Task<List<Vulnerability>> AnalyzeHtmlContent(string htmlContent)
+        private async Task CheckInsecureForms(HtmlDocument doc, Scan scan, string groupName, List<Vulnerability> found)
         {
-            var vulnerabilities = new List<Vulnerability>();
-
-            // SQL Injection detection in forms
-            var formPattern = @"<form[^>]*>(.*?)</form>";
-            var formMatches = Regex.Matches(htmlContent, formPattern, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-            foreach (Match formMatch in formMatches)
+            var forms = doc.DocumentNode.SelectNodes("//form[translate(@method, 'GET', 'get')='get']");
+            if (forms != null)
             {
-                var formContent = formMatch.Value;
-
-                // Check for SQL injection vulnerabilities
-                if (ContainsSqlInjectionPatterns(formContent))
+                foreach (var form in forms)
                 {
-                    vulnerabilities.Add(new Vulnerability
+                    var vulnerability = new Vulnerability { Title = "Formular nesecurizat (metoda GET)", Description = "Acest formular folosește metoda GET pentru a trimite date. Datele sensibile pot fi expuse în URL, în istoricul browser-ului și în log-urile server-ului.", Impact = "Datele trimise prin formular, inclusiv cele potențial sensibile, pot fi interceptate sau vizualizate de terți neautorizați.", Recommendation = "Folosiți metoda POST pentru toate formularele care manipulează date, în special cele sensibile.", Severity = Severity.Low, ScanId = scan.Id, Status = VulnerabilityStatus.Open, Type = VulnerabilityType.InsecureConfiguration };
+                    found.Add(vulnerability);
+                    await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNewVulnerability", vulnerability);
+                }
+            }
+        }
+
+        private async Task CheckInsecurePasswordInputs(HtmlDocument doc, Scan scan, string groupName, List<Vulnerability> found)
+        {
+            var passwordInputs = doc.DocumentNode.SelectNodes("//input[@type='password']");
+            if (passwordInputs != null)
+            {
+                foreach (var input in passwordInputs)
+                {
+                    if (input.GetAttributeValue("autocomplete", "").ToLower() != "new-password")
                     {
-                        Title = "Potențial SQL Injection în formular",
-                        Description = "Formularul pare să construiască query-uri SQL direct din input-ul utilizatorului.",
-                        Type = VulnerabilityType.SqlInjection,
-                        Severity = Severity.Critical,
-                        Impact = "Un atacator poate executa comenzi SQL arbitrare și poate accesa sau modifica date sensibile.",
-                        Recommendation = "Folosiți parametri pregătiți (prepared statements) și validați toate input-urile.",
-                        DetectedAt = DateTime.UtcNow
-                    });
+                        var vulnerability = new Vulnerability { Title = "Câmp de parolă nesecurizat", Description = "Câmpul de parolă nu are atributul 'autocomplete=\"new-password\"', ceea ce poate duce la salvarea parolelor în mod nesigur de către managerii de parole din browser.", Impact = "Managerii de parole pot sugera sau autocompleta parole în moduri care pot fi interceptate de script-uri malițioase.", Recommendation = "Adăugați atributul 'autocomplete=\"new-password\"' la toate câmpurile de parolă pentru a spori securitatea.", Severity = Severity.Medium, ScanId = scan.Id, Status = VulnerabilityStatus.Open, Type = VulnerabilityType.InsecureConfiguration };
+                        found.Add(vulnerability);
+                        await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNewVulnerability", vulnerability);
+                    }
                 }
             }
-
-            // XSS detection
-            if (ContainsXssPatterns(htmlContent))
-            {
-                vulnerabilities.Add(new Vulnerability
-                {
-                    Title = "Potențial Cross-Site Scripting (XSS)",
-                    Description = "Conținutul HTML conține pattern-uri care pot permite injectarea de script-uri malițioase.",
-                    Type = VulnerabilityType.XSS,
-                    Severity = Severity.High,
-                    Impact = "Atacatorii pot executa JavaScript în browserul victimei și pot fura cookie-uri sau date sensibile.",
-                    Recommendation = "Sanitizați toate output-urile și folosiți Content Security Policy (CSP).",
-                    DetectedAt = DateTime.UtcNow
-                });
-            }
-
-            // CSRF detection
-            var hasCSRFProtection = htmlContent.Contains("csrf") || htmlContent.Contains("token") || htmlContent.Contains("RequestVerificationToken");
-            if (formMatches.Count > 0 && !hasCSRFProtection)
-            {
-                vulnerabilities.Add(new Vulnerability
-                {
-                    Title = "Lipsă protecție CSRF",
-                    Description = "Formularele nu par să aibă protecție împotriva atacurilor Cross-Site Request Forgery.",
-                    Type = VulnerabilityType.CSRF,
-                    Severity = Severity.Medium,
-                    Impact = "Un atacator poate forța utilizatorii autentificați să execute acțiuni nedorite.",
-                    Recommendation = "Implementați token-uri CSRF pentru toate formularele care modifică date.",
-                    DetectedAt = DateTime.UtcNow
-                });
-            }
-
-            // Sensitive data exposure
-            if (ContainsSensitiveDataPatterns(htmlContent))
-            {
-                vulnerabilities.Add(new Vulnerability
-                {
-                    Title = "Expunere potențială de date sensibile",
-                    Description = "HTML-ul conține pattern-uri care sugerează expunerea de date sensibile.",
-                    Type = VulnerabilityType.SensitiveDataExposure,
-                    Severity = Severity.High,
-                    Impact = "Date sensibile precum parole sau informații personale pot fi vizibile.",
-                    Recommendation = "Nu includeți date sensibile în HTML. Folosiți HTTPS și criptați datele sensibile.",
-                    DetectedAt = DateTime.UtcNow
-                });
-            }
-
-            // Missing security headers
-            if (!htmlContent.Contains("X-Frame-Options") && !htmlContent.Contains("frame-ancestors"))
-            {
-                vulnerabilities.Add(new Vulnerability
-                {
-                    Title = "Header de securitate lipsă: X-Frame-Options",
-                    Description = "Pagina poate fi încărcată într-un iframe, permițând atacuri clickjacking.",
-                    Type = VulnerabilityType.Other,
-                    Severity = Severity.Low,
-                    Impact = "Pagina poate fi supusă atacurilor de tip clickjacking.",
-                    Recommendation = "Adăugați header-ul X-Frame-Options: SAMEORIGIN sau folosiți CSP frame-ancestors.",
-                    DetectedAt = DateTime.UtcNow
-                });
-            }
-
-            return vulnerabilities;
         }
 
-        private bool ContainsSqlInjectionPatterns(string content)
+        private async Task CheckExternalLinks(HtmlDocument doc, Scan scan, string groupName, List<Vulnerability> found)
         {
-            var patterns = new[]
+            var links = doc.DocumentNode.SelectNodes("//a[@target='_blank']");
+            if (links != null)
             {
-                @"SELECT\s+.*\s+FROM",
-                @"INSERT\s+INTO",
-                @"UPDATE\s+.*\s+SET",
-                @"DELETE\s+FROM",
-                @"DROP\s+TABLE",
-                @";\s*--",
-                @"UNION\s+SELECT",
-                @"OR\s+1\s*=\s*1",
-                @"'\s+OR\s+'",
-                "mysql_query",
-                "mysqli_query",
-                "pg_query"
-            };
-
-            return patterns.Any(pattern =>
-                Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase));
-        }
-
-        private bool ContainsXssPatterns(string content)
-        {
-            var patterns = new[]
-            {
-                @"<script[^>]*>",
-                @"javascript:",
-                @"on\w+\s*=",
-                @"eval\s*\(",
-                @"expression\s*\(",
-                @"document\.write",
-                @"document\.cookie",
-                @"innerHTML\s*=",
-                @"\.html\(\)",
-                @"<iframe",
-                @"<object",
-                @"<embed"
-            };
-
-            return patterns.Any(pattern =>
-                Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase));
-        }
-
-        private bool ContainsSensitiveDataPatterns(string content)
-        {
-            var patterns = new[]
-            {
-                @"password\s*[:=]",
-                @"api[_-]?key\s*[:=]",
-                @"secret\s*[:=]",
-                @"token\s*[:=]",
-                @"\b\d{16}\b", // Credit card pattern
-                @"\b\d{3}-\d{2}-\d{4}\b", // SSN pattern
-                @"private[_-]?key",
-                @"BEGIN\s+(RSA|DSA|EC)\s+PRIVATE\s+KEY"
-            };
-
-            return patterns.Any(pattern =>
-                Regex.IsMatch(content, pattern, RegexOptions.IgnoreCase));
-        }
-
-        private string GenerateReportContent(Scan scan, List<Vulnerability> vulnerabilities)
-        {
-            var criticalCount = vulnerabilities.Count(v => v.Severity == Severity.Critical);
-            var highCount = vulnerabilities.Count(v => v.Severity == Severity.High);
-            var mediumCount = vulnerabilities.Count(v => v.Severity == Severity.Medium);
-            var lowCount = vulnerabilities.Count(v => v.Severity == Severity.Low);
-
-            var html = $@"
-                <h3>Raport de Scanare pentru {scan.Application.Name}</h3>
-                <p>Data analizei: {DateTime.Now:dd MMMM yyyy, HH:mm}</p>
-                <p>Fișier analizat: {scan.FileName}</p>
-                
-                <h4>Sumar Executiv</h4>
-                <p>Scanarea automată a identificat <strong>{vulnerabilities.Count} vulnerabilități potențiale</strong> în aplicație.</p>
-                
-                <h4>Distribuție Severitate</h4>
-                <table class='table table-bordered'>
-                    <tr>
-                        <th>Severitate</th>
-                        <th>Număr</th>
-                        <th>Procent</th>
-                    </tr>
-                    <tr class='table-danger'>
-                        <td><i class='fas fa-exclamation-circle'></i> Critică</td>
-                        <td>{criticalCount}</td>
-                        <td>{(criticalCount * 100.0 / Math.Max(vulnerabilities.Count, 1)):F1}%</td>
-                    </tr>
-                    <tr class='table-warning'>
-                        <td><i class='fas fa-exclamation-triangle'></i> Înaltă</td>
-                        <td>{highCount}</td>
-                        <td>{(highCount * 100.0 / Math.Max(vulnerabilities.Count, 1)):F1}%</td>
-                    </tr>
-                    <tr class='table-info'>
-                        <td><i class='fas fa-info-circle'></i> Medie</td>
-                        <td>{mediumCount}</td>
-                        <td>{(mediumCount * 100.0 / Math.Max(vulnerabilities.Count, 1)):F1}%</td>
-                    </tr>
-                    <tr class='table-secondary'>
-                        <td><i class='fas fa-info'></i> Scăzută</td>
-                        <td>{lowCount}</td>
-                        <td>{(lowCount * 100.0 / Math.Max(vulnerabilities.Count, 1)):F1}%</td>
-                    </tr>
-                </table>
-                
-                <h4>Vulnerabilități Detectate</h4>";
-
-            foreach (var vuln in vulnerabilities.OrderBy(v => v.Severity))
-            {
-                var severityClass = vuln.Severity switch
+                foreach (var link in links)
                 {
-                    Severity.Critical => "danger",
-                    Severity.High => "warning",
-                    Severity.Medium => "info",
-                    _ => "secondary"
-                };
-
-                html += $@"
-                    <div class='card mb-3 border-{severityClass}'>
-                        <div class='card-header bg-{severityClass} text-white'>
-                            <h5 class='mb-0'>{vuln.Title}</h5>
-                        </div>
-                        <div class='card-body'>
-                            <p><strong>Tip:</strong> {vuln.Type}</p>
-                            <p><strong>Severitate:</strong> {vuln.Severity}</p>
-                            <p><strong>Descriere:</strong> {vuln.Description}</p>
-                            <p><strong>Impact:</strong> {vuln.Impact}</p>
-                            <p><strong>Recomandare:</strong> {vuln.Recommendation}</p>
-                        </div>
-                    </div>";
+                    var rel = link.GetAttributeValue("rel", "").ToLower();
+                    if (!rel.Contains("noopener") || !rel.Contains("noreferrer"))
+                    {
+                        var vulnerability = new Vulnerability { Title = "Link extern nesecurizat (risc de tabnabbing)", Description = $"Link-ul către '{link.GetAttributeValue("href", "#")}' se deschide într-un tab nou fără 'rel=\"noopener noreferrer\"'.", Impact = "Pagina nouă poate avea control parțial asupra paginii originale (ex: o poate redirecționa către un site de phishing), ceea ce poate induce în eroare utilizatorul.", Recommendation = "Adăugați întotdeauna atributul 'rel=\"noopener noreferrer\"' la toate link-urile care se deschid cu 'target=\"_blank\"'.", Severity = Severity.Low, ScanId = scan.Id, Status = VulnerabilityStatus.Open, Type = VulnerabilityType.InsecureConfiguration };
+                        found.Add(vulnerability);
+                        await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNewVulnerability", vulnerability);
+                    }
+                }
             }
+        }
 
-            html += @"
-                <h4>Recomandări Generale</h4>
-                <ol>
-                    <li>Prioritizați remedierea vulnerabilităților critice și înalte</li>
-                    <li>Implementați un proces de code review pentru schimbările viitoare</li>
-                    <li>Folosiți tool-uri de analiză statică în procesul de development</li>
-                    <li>Efectuați teste de penetrare regulate</li>
-                    <li>Mențineți toate dependențele actualizate</li>
-                </ol>";
-
-            return html;
+        private async Task CheckInsecureScripts(HtmlDocument doc, Scan scan, string groupName, List<Vulnerability> found)
+        {
+            var scripts = doc.DocumentNode.SelectNodes("//script[@src]");
+            if (scripts != null)
+            {
+                foreach (var script in scripts)
+                {
+                    var src = script.GetAttributeValue("src", "");
+                    if (src.StartsWith("http://"))
+                    {
+                        var vulnerability = new Vulnerability { Title = "Script încărcat printr-o conexiune nesecurizată", Description = $"Script-ul de la adresa '{src}' este încărcat prin HTTP.", Impact = "Un atacator aflat în aceeași rețea (Man-in-the-Middle) ar putea intercepta și modifica acest script pentru a injecta cod malițios în pagina dumneavoastră.", Recommendation = "Încărcați toate resursele externe, inclusiv script-urile, folosind exclusiv conexiuni securizate HTTPS.", Severity = Severity.High, ScanId = scan.Id, Status = VulnerabilityStatus.Open, Type = VulnerabilityType.InsecureConfiguration };
+                        found.Add(vulnerability);
+                        await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNewVulnerability", vulnerability);
+                    }
+                }
+            }
         }
     }
 }
-

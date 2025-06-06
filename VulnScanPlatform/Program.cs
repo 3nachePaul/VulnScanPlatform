@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VulnScanPlatform.Data;
 using VulnScanPlatform.Models;
 using VulnScanPlatform.Services;
+using VulnScanPlatform.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<IJwtService, JwtService>(); // Keep this for future API endpoints
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IScanService, ScanService>();
+builder.Services.AddSignalR();
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
@@ -109,6 +111,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapHub<ScanHub>("/scanHub");
 
 // Seed data
 using (var scope = app.Services.CreateScope())
